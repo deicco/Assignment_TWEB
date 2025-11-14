@@ -9,5 +9,5 @@ import java.util.List;
 public interface CountryRepository extends JpaRepository <Country, CountryPrimaryKey>{
 
     //find all countries where a film has been produced
-    List<Country> findByMovie(Movies movies);
+    List<Country> findByMovieId(Long id);
 }

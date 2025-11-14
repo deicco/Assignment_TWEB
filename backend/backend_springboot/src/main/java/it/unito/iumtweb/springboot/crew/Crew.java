@@ -1,12 +1,11 @@
-package it.unito.iumtweb.springboot.actors;
-import java.util.*;
+package it.unito.iumtweb.springboot.crew;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "crew")
-public class Actors {
+public class Crew {
 
     @Id
     private Long id;

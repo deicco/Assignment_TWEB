@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 import java.util.Objects;
 
+
 @Embeddable
 public class CountryPrimaryKey implements Serializable {
     private Integer id;
@@ -14,6 +15,10 @@ public class CountryPrimaryKey implements Serializable {
     public CountryPrimaryKey(Integer id, String country) {
         this.id = id;
         this.country = country;
+    }
+
+    public CountryPrimaryKey() {
+
     }
 
     public Integer getMovie() {

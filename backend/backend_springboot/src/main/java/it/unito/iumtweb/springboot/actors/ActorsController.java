@@ -3,7 +3,9 @@ package it.unito.iumtweb.springboot.actors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import it.unito.iumtweb.springboot.actors.ActorsRepository;
+import it.unito.iumtweb.springboot.actors.ActorsService;
+import it.unito.iumtweb.springboot.actors.Actors;
 import java.util.List;
 import java.util.Optional;
 

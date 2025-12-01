@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.List;
 
 @Service
 public class MoviesService {
@@ -14,11 +15,7 @@ public class MoviesService {
     private MoviesRepository repo;
 
     /**
-     * Recupera una pagina di film, applicando eventualmente un solo filtro fra questi:
-     * – name       : titolo che contiene (ignore case)
-     * – minRating e maxRating
-     * – startDate e endDate
-     * Se non passi nessun filtro, restituisce tutto paginato.
+     * Recupera una pagina di film con filtri
      */
     public Page<Movies> getMovies(
             String name,
@@ -40,7 +37,8 @@ public class MoviesService {
         return repo.findAll(pageable);
     }
 
-    public Optional<Movies> getMovieById(int id) {
+    // Metodo aggiornato: da int a Long
+    public Optional<Movies> getMovieById(Long id) {
         return repo.findById(id);
     }
 
@@ -48,17 +46,25 @@ public class MoviesService {
         return repo.save(m);
     }
 
-    public Optional<Movies> updateMovie(int id, Movies updated) {
+    // Metodo aggiornato: da int a Long
+    public Optional<Movies> updateMovie(Long id, Movies updated) {
         return repo.findById(id)
                 .map(existing -> {
+                    // Mantiene l'ID esistente
                     updated.setId(existing.getId());
                     return repo.save(updated);
                 });
     }
 
-    public boolean deleteMovie(int id) {
+    // Metodo aggiornato: da int a Long
+    public boolean deleteMovie(Long id) {
         if (!repo.existsById(id)) return false;
         repo.deleteById(id);
         return true;
+    }
+
+    // Aggiunto per il CsvDataLoader
+    public List<Movies> findAll() {
+        return repo.findAll();
     }
 }

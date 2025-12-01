@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 public class GenresController {
 
     @Autowired
-    private GenresRepository genresRepository;
+    private GenresService genresService; // Iniettiamo il Service
 
     // GET - Recupera tutti i generi con paginazione
     @GetMapping
@@ -21,8 +21,17 @@ public class GenresController {
     ) {
         System.out.println("Request ricevuta su /genres - Page: " + page + " Size: " + size);
         Pageable pageable = PageRequest.of(page, size);
-        Page<Genres> genresPage = genresRepository.findAll(pageable);
+
+        // La logica di business viene delegata al Service
+        Page<Genres> genresPage = genresService.getAllGenres(pageable);
+
         System.out.println("Generi trovati: " + genresPage.getTotalElements());
         return genresPage;
+    }
+
+    // Aggiungo un semplice endpoint POST per aggiungere nuovi generi (CRUD completo)
+    @PostMapping
+    public Genres createGenre(@RequestBody Genres genre) {
+        return genresService.saveGenre(genre);
     }
 }

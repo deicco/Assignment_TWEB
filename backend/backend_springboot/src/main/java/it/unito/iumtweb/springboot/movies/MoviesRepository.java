@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 
-public interface MoviesRepository extends JpaRepository<Movies, Integer> {
+public interface MoviesRepository extends JpaRepository<Movies, Long> {
     // Filtra per nome (contiene, case‐insensitive)
     Page<Movies> findByNameContainingIgnoreCase(String name, Pageable pageable);
 

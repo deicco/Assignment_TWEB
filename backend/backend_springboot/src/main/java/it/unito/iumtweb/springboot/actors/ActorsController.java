@@ -3,9 +3,7 @@ package it.unito.iumtweb.springboot.actors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import it.unito.iumtweb.springboot.actors.ActorsRepository;
-import it.unito.iumtweb.springboot.actors.ActorsService;
-import it.unito.iumtweb.springboot.actors.Actors;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -14,40 +12,39 @@ import java.util.Optional;
 public class ActorsController {
 
     @Autowired
-    private ActorsRepository actorsRepository;
+    private ActorsService actorsService;
 
     @GetMapping
     public List<Actors> getAllActors() {
-        return actorsRepository.findAll();
+        return actorsService.getAllActors();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Actors> getActorById(@PathVariable int id) {
-        Optional<Actors> actor = actorsRepository.findById(id);
+    public ResponseEntity<Actors> getActorById(@PathVariable Long id) {
+        Optional<Actors> actor = actorsService.getActorById(id);
         return actor.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public Actors createActor(@RequestBody Actors actor) {
-        return actorsRepository.save(actor);
+        return actorsService.saveActor(actor);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Actors> updateActor(@PathVariable int id, @RequestBody Actors updatedActor) {
-        return actorsRepository.findById(id)
-                .map(existingActor -> {
-                    existingActor.setName(updatedActor.getName());
-                    existingActor.setRole(updatedActor.getRole());
-                    return ResponseEntity.ok(actorsRepository.save(existingActor));
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<Actors> updateActor(@PathVariable Long id, @RequestBody Actors updatedActor) {
+        Actors result = actorsService.updateActor(id, updatedActor);
+        if (result != null) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteActor(@PathVariable int id) {
-        if (actorsRepository.existsById(id)) {
-            actorsRepository.deleteById(id);
+    public ResponseEntity<Void> deleteActor(@PathVariable Long id) {
+        boolean deleted = actorsService.deleteActor(id);
+        if (deleted) {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();

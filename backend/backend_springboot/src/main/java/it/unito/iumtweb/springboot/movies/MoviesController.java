@@ -16,13 +16,7 @@ public class MoviesController {
     @Autowired
     private MoviesService service;
 
-    /**
-     * Esempio di chiamata:
-     * GET /movies?page=0&size=20
-     * GET /movies?name=shawshank&page=0&size=10
-     * GET /movies?minRating=8.5&maxRating=10&page=0&size=5
-     * GET /movies?startDate=1994-09-01T00:00:00&endDate=1995-01-01T00:00:00&page=0&size=10
-     */
+    // ... (listMovies resta invariato) ...
     @GetMapping
     public Page<Movies> listMovies(
             @RequestParam(required = false) String name,
@@ -37,22 +31,25 @@ public class MoviesController {
         return service.getMovies(name, minRating, maxRating, startDate, endDate, pageable);
     }
 
+    // Aggiornato: da int a Long
     @GetMapping("/{id}")
-    public ResponseEntity<Movies> getOne(@PathVariable int id) {
+    public ResponseEntity<Movies> getOne(@PathVariable Long id) {
         return service.getMovieById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // ... (create resta invariato) ...
     @PostMapping
     public ResponseEntity<Movies> create(@RequestBody Movies movie) {
         Movies saved = service.createMovie(movie);
         return ResponseEntity.ok(saved);
     }
 
+    // Aggiornato: da int a Long
     @PutMapping("/{id}")
     public ResponseEntity<Movies> update(
-            @PathVariable int id,
+            @PathVariable Long id,
             @RequestBody Movies movie
     ) {
         return service.updateMovie(id, movie)
@@ -60,8 +57,9 @@ public class MoviesController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // Aggiornato: da int a Long
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable int id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         return service.deleteMovie(id)
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.notFound().build();

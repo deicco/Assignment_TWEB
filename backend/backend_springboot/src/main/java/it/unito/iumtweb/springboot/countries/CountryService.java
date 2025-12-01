@@ -13,10 +13,19 @@ public class CountryService {
         this.countryRepository = countryRepository;
     }
 
-    public List<String> getCountriesByMovie(Long id) {
-        return countryRepository.findByMovieId(id)
+    public List<String> getCountriesByMovie(Long movieId) {
+        return countryRepository.findByMovieId(movieId)
                 .stream()
                 .map(Country::getCountry)
                 .collect(Collectors.toList());
+    }
+
+    // Metodo utile per il caricamento dati
+    public void saveCountry(Country country) {
+        countryRepository.save(country);
+    }
+
+    public List<Country> getAll() {
+        return countryRepository.findAll();
     }
 }

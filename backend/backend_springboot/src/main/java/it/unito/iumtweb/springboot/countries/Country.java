@@ -8,15 +8,15 @@ public class Country {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long countryId;
-    // PK tecnica, NON nel CSV, aggiunta perché un film è associato in più nazioni,
-    // quindi l'id del film non può essere univoco
+    private Long countryId; // PK tecnica autoincrementante
 
     @Column(name = "id", nullable = false)
-    private Long id;     // id del film, dal CSV
+    private Long movieId; // Questo è l'id del film proveniente dal CSV
 
     @Column(name = "country", nullable = false)
     private String country;
+
+    // Getters and Setters
 
     public Long getCountryId() {
         return countryId;
@@ -26,12 +26,12 @@ public class Country {
         this.countryId = countryId;
     }
 
-    public Long getId() {
-        return id;
+    public Long getMovieId() {
+        return movieId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setMovieId(Long movieId) {
+        this.movieId = movieId;
     }
 
     public String getCountry() {

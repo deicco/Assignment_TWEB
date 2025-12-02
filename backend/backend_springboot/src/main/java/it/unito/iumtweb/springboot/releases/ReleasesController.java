@@ -14,44 +14,60 @@ public class ReleasesController {
     @Autowired
     private ReleasesService releasesService;
 
-    // GET /releases
+    // GET /releases (Invariato)
     @GetMapping
     public List<Releases> getAllReleases() {
         return releasesService.getAllReleases();
     }
 
-    // GET /releases/country/{country}
+    // GET /releases/country/{country} (Invariato)
     @GetMapping("/country/{country}")
     public List<Releases> getReleasesByCountry(@PathVariable String country) {
         return releasesService.getReleasesByCountry(country);
     }
 
-    // GET /releases/{id} (Ricerca per ID film/PK)
-    @GetMapping("/{id}")
-    public ResponseEntity<Releases> getReleaseById(@PathVariable Long id) {
-        Optional<Releases> release = releasesService.getReleaseById(id);
+    // GET /releases/movie/{id} - Ricerca per ID del film (Nuovo)
+    @GetMapping("/movie/{id}")
+    public List<Releases> getReleasesByMovieId(@PathVariable Long id) {
+        return releasesService.getReleasesByMovieId(id);
+    }
+
+    // GET /releases/{movieId}/{country} - Ricerca per Chiave Composta (Nuovo)
+    @GetMapping("/{movieId}/{country}")
+    public ResponseEntity<Releases> getReleaseByCompositeKey(
+            @PathVariable Long movieId,
+            @PathVariable String country
+    ) {
+        Optional<Releases> release = releasesService.getReleaseByCompositeKey(movieId, country);
         return release.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // POST /releases
+    // POST /releases (Ora usa DTO)
     @PostMapping
-    public Releases createRelease(@RequestBody Releases release) {
-        return releasesService.saveRelease(release);
+    public Releases createRelease(@RequestBody ReleasesDTO releaseDto) {
+        return releasesService.createRelease(releaseDto);
     }
 
-    // PUT /releases/{id}
-    @PutMapping("/{id}")
-    public ResponseEntity<Releases> updateRelease(@PathVariable Long id, @RequestBody Releases updatedRelease) {
-        return releasesService.updateRelease(id, updatedRelease)
+    // PUT /releases/{movieId}/{country} (Modificato per chiave composta e DTO)
+    @PutMapping("/{movieId}/{country}")
+    public ResponseEntity<Releases> updateRelease(
+            @PathVariable Long movieId,
+            @PathVariable String country,
+            @RequestBody ReleasesDTO updatedDto
+    ) {
+        return releasesService.updateRelease(movieId, country, updatedDto)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // DELETE /releases/{id}
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRelease(@PathVariable Long id) {
-        return releasesService.deleteRelease(id)
+    // DELETE /releases/{movieId}/{country} (Modificato per chiave composta)
+    @DeleteMapping("/{movieId}/{country}")
+    public ResponseEntity<Void> deleteRelease(
+            @PathVariable Long movieId,
+            @PathVariable String country
+    ) {
+        return releasesService.deleteRelease(movieId, country)
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.notFound().build();
     }

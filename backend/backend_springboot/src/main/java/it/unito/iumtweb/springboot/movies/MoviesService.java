@@ -15,7 +15,7 @@ public class MoviesService {
     private MoviesRepository repo;
 
     /**
-     * Recupera una pagina di film con filtri
+     * Recupera una pagina di film con filtri (Invariato)
      */
     public Page<Movies> getMovies(
             String name,
@@ -37,34 +37,54 @@ public class MoviesService {
         return repo.findAll(pageable);
     }
 
-    // Metodo aggiornato: da int a Long
+    // Metodo aggiornato: da int a Long (Invariato)
     public Optional<Movies> getMovieById(Long id) {
         return repo.findById(id);
     }
 
-    public Movies createMovie(Movies m) {
-        return repo.save(m);
+    // CREATE: Crea un nuovo film usando il DTO (Modificato)
+    public Movies createMovie(MoviesDTO movieDto) {
+        Movies newMovie = new Movies();
+
+        // Mappatura DTO -> Entity
+        newMovie.setName(movieDto.getName());
+        newMovie.setDate(movieDto.getDate());
+        newMovie.setTagline(movieDto.getTagline());
+        newMovie.setDescription(movieDto.getDescription());
+        newMovie.setMinute(movieDto.getMinute());
+        newMovie.setRating(movieDto.getRating());
+
+        return repo.save(newMovie);
     }
 
-    // Metodo aggiornato: da int a Long
-    public Optional<Movies> updateMovie(Long id, Movies updated) {
+    // UPDATE: Aggiorna un film esistente usando il DTO (Modificato)
+    public Optional<Movies> updateMovie(Long id, MoviesDTO updatedDto) {
         return repo.findById(id)
                 .map(existing -> {
-                    // Mantiene l'ID esistente
-                    updated.setId(existing.getId());
-                    return repo.save(updated);
+                    // Aggiorna l'entità esistente con i dati del DTO
+                    existing.setName(updatedDto.getName());
+                    existing.setDate(updatedDto.getDate());
+                    existing.setTagline(updatedDto.getTagline());
+                    existing.setDescription(updatedDto.getDescription());
+                    existing.setMinute(updatedDto.getMinute());
+                    existing.setRating(updatedDto.getRating());
+
+                    return repo.save(existing);
                 });
     }
 
-    // Metodo aggiornato: da int a Long
+    // Metodo aggiornato: da int a Long (Invariato)
     public boolean deleteMovie(Long id) {
         if (!repo.existsById(id)) return false;
         repo.deleteById(id);
         return true;
     }
 
-    // Aggiunto per il CsvDataLoader
+    // Aggiunto per il CsvDataLoader (Invariato)
     public List<Movies> findAll() {
         return repo.findAll();
     }
+
+    // Il vecchio metodo createMovie(Movies m) è stato sostituito da createMovie(MoviesDTO m)
+    // Similmente, updateMovie(Long id, Movies updated) è stato sostituito da updateMovie(Long id, MoviesDTO updatedDto)
 }

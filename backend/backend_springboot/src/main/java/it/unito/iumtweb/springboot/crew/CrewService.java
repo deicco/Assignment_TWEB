@@ -12,38 +12,54 @@ public class CrewService {
     @Autowired
     private CrewRepository crewRepository;
 
-    // READ: Ottieni tutto il crew
+    // READ: Ottieni tutte le associazioni
     public List<Crew> getAllCrew() {
         return crewRepository.findAll();
     }
 
-    // READ: Ottieni un membro del crew per ID
-    public Optional<Crew> getCrewById(Long id) {
-        return crewRepository.findById(id);
+    // READ: Ottieni crew per ID Film
+    public List<Crew> getCrewByMovieId(Long movieId) {
+        return crewRepository.findByIdMovieId(movieId);
     }
 
-    // CREATE/UPDATE: Salva o aggiorna un membro del crew
-    public Crew saveCrew(Crew crew) {
-        return crewRepository.save(crew);
+    // READ: Ottieni un membro specifico tramite chiave composta
+    public Optional<Crew> getCrewByCompositeId(Long movieId, String crewName) {
+        CrewPrimaryKey pk = new CrewPrimaryKey(movieId, crewName);
+        return crewRepository.findById(pk);
     }
 
-    // UPDATE: Aggiorna un membro del crew esistente
-    public Crew updateCrew(Long id, Crew updatedCrew) {
-        return crewRepository.findById(id)
+    // CREATE: Salva un nuovo membro del crew (associazione) usando DTO
+    public Crew createCrew(CrewDTO crewDto) {
+        CrewPrimaryKey pk = new CrewPrimaryKey(crewDto.getMovieId(), crewDto.getCrewName());
+        Crew newCrew = new Crew(pk, crewDto.getRole());
+        return crewRepository.save(newCrew);
+    }
+
+    // UPDATE: Aggiorna un membro del crew esistente usando DTO e chiave
+    public Crew updateCrew(Long movieId, String crewName, CrewDTO updatedCrewDto) {
+        CrewPrimaryKey pk = new CrewPrimaryKey(movieId, crewName);
+
+        return crewRepository.findById(pk)
                 .map(existingCrew -> {
-                    existingCrew.setName(updatedCrew.getName());
-                    existingCrew.setRole(updatedCrew.getRole());
+                    // Si aggiorna solo il campo non-chiave (role)
+                    existingCrew.setRole(updatedCrewDto.getRole());
                     return crewRepository.save(existingCrew);
                 })
                 .orElse(null);
     }
 
-    // DELETE: Elimina un membro del crew per ID
-    public boolean deleteCrew(Long id) {
-        if (crewRepository.existsById(id)) {
-            crewRepository.deleteById(id);
+    // DELETE: Elimina un membro del crew per chiave composta
+    public boolean deleteCrew(Long movieId, String crewName) {
+        CrewPrimaryKey pk = new CrewPrimaryKey(movieId, crewName);
+        if (crewRepository.existsById(pk)) {
+            crewRepository.deleteById(pk);
             return true;
         }
         return false;
+    }
+
+    // Metodo di salvataggio generico (come da tua versione originale, mantenuto per data loading)
+    public Crew saveCrew(Crew crew) {
+        return crewRepository.save(crew);
     }
 }

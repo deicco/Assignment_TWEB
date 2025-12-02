@@ -14,41 +14,51 @@ public class StudiosController {
     @Autowired
     private StudiosService studiosService;
 
-    // GET /studios
+    // GET /studios (Ottieni tutte le associazioni)
     @GetMapping
     public List<Studios> getAllStudios() {
         return studiosService.getAllStudios();
     }
 
-    // GET /studios/{id}
-    @GetMapping("/{id}")
-    public ResponseEntity<Studios> getStudioById(@PathVariable Long id) {
-        Optional<Studios> studio = studiosService.getStudioById(id);
+    // GET /studios/movie/{id} (Ottieni tutti gli studi per ID film) (Nuovo)
+    @GetMapping("/movie/{movieId}")
+    public List<Studios> getStudiosByMovieId(@PathVariable Long movieId) {
+        return studiosService.getStudiosByMovieId(movieId);
+    }
+
+    // GET /studios/{movieId}/{studioName} (Ottieni associazione specifica per chiave composta) (Nuovo)
+    @GetMapping("/{movieId}/{studioName}")
+    public ResponseEntity<Studios> getStudioByCompositeKey(@PathVariable Long movieId, @PathVariable String studioName) {
+        Optional<Studios> studio = studiosService.getStudioByCompositeKey(movieId, studioName);
         return studio.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // POST /studios
+    // POST /studios (Ora usa DTO)
     @PostMapping
-    public Studios createStudio(@RequestBody Studios studio) {
-        return studiosService.saveStudio(studio);
+    public Studios createStudio(@RequestBody StudiosDTO studioDto) {
+        return studiosService.createStudio(studioDto);
     }
 
-    // PUT /studios/{id}
-    @PutMapping("/{id}")
-    public ResponseEntity<Studios> updateStudio(@PathVariable Long id, @RequestBody Studios updatedStudio) {
-        Studios result = studiosService.updateStudio(id, updatedStudio);
-        if (result != null) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    // PUT /studios/{movieId}/{studioName} (Aggiornamento con chiave composta e DTO)
+    @PutMapping("/{movieId}/{studioName}")
+    public ResponseEntity<Studios> updateStudio(
+            @PathVariable Long movieId,
+            @PathVariable String studioName,
+            @RequestBody StudiosDTO updatedStudioDto
+    ) {
+        // L'update qui è più un check di esistenza/riscrittura, dato che non ci sono campi non-chiave
+        Optional<Studios> result = studiosService.updateStudio(movieId, studioName, updatedStudioDto);
+
+        return result
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // DELETE /studios/{id}
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStudio(@PathVariable Long id) {
-        boolean deleted = studiosService.deleteStudio(id);
+    // DELETE /studios/{movieId}/{studioName} (Elimina con chiave composta)
+    @DeleteMapping("/{movieId}/{studioName}")
+    public ResponseEntity<Void> deleteStudio(@PathVariable Long movieId, @PathVariable String studioName) {
+        boolean deleted = studiosService.deleteStudio(movieId, studioName);
         if (deleted) {
             return ResponseEntity.noContent().build();
         }

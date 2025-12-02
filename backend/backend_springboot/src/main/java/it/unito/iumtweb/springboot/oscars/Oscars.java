@@ -1,32 +1,33 @@
 package it.unito.iumtweb.springboot.oscars;
-import java.util.*;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "oscars")
 public class Oscars {
 
-    @Id
-    private int year_film;
+    @EmbeddedId // Usa la chiave composta
+    private OscarsPrimaryKey id;
+
     private int year_ceremony;
     private int ceremony;
-    private String category;
     private String name;
-    private String film;
-    private Boolean winner;
+    private Boolean winner; // Usare Boolean per consistenza con il tuo file originale
+
+    public Oscars() {}
+
+    // --- Getters e Setters ---
+
+    public OscarsPrimaryKey getId() { return id; }
+    public void setId(OscarsPrimaryKey id) { this.id = id; }
 
     public int getYear_film() {
-        return year_film;
+        return id.getYear_film(); // Recuperato dalla PK
     }
-
-    public void setYear_film(int year_film) {
-        this.year_film = year_film;
-    }
+    // non serve setYear_film, si setta tramite PK
 
     public int getYear_ceremony() {
         return year_ceremony;
     }
-
     public void setYear_ceremony(int year_ceremony) {
         this.year_ceremony = year_ceremony;
     }
@@ -34,40 +35,33 @@ public class Oscars {
     public int getCeremony() {
         return ceremony;
     }
-
     public void setCeremony(int ceremony) {
         this.ceremony = ceremony;
     }
 
     public String getCategory() {
-        return category;
+        return id.getCategory(); // Recuperato dalla PK
     }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
+    // non serve setCategory, si setta tramite PK
 
     public String getName() {
         return name;
     }
-
     public void setName(String name) {
         this.name = name;
     }
 
     public String getFilm() {
-        return film;
+        return id.getFilm(); // Recuperato dalla PK
     }
+    // non serve setFilm, si setta tramite PK
 
-    public void setFilm(String film) {
-        this.film = film;
-    }
-
-    public boolean getIsWinner(boolean winner) {
+    // Metodo getIsWinner modificato per consistenza
+    public Boolean getWinner() {
         return winner;
     }
 
-    public void setWinner(boolean winner) {
+    public void setWinner(Boolean winner) {
         this.winner = winner;
     }
 }

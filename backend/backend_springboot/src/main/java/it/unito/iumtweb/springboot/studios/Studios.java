@@ -5,13 +5,19 @@ import jakarta.persistence.*;
 @Table(name = "studios")
 public class Studios {
 
-    @Id
-    private Long id;
-    private String studio;
+    @EmbeddedId // Usa la chiave composta
+    private StudiosPrimaryKey id;
 
-    public Long getId() {return id;}
-    public void setId(Long id) { this.id = id; }
+    public Studios() {}
 
-    public String getStudio() {return studio;}
-    public void setStudio(String studio) { this.studio = studio; }
+    // --- Getters e Setters ---
+
+    public StudiosPrimaryKey getId() { return id; }
+    public void setId(StudiosPrimaryKey id) { this.id = id; }
+
+    // I metodi per movieId e studioName sono ora nella PK
+    public Long getMovieId() { return id.getMovieId(); }
+    public String getStudio() { return id.getStudioName(); }
+
+    // Non sono necessari setter qui per i campi della chiave
 }

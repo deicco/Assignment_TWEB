@@ -14,41 +14,42 @@ public class ThemesController {
     @Autowired
     private ThemesService themesService;
 
-    // GET /themes
+    // GET /themes (Tutti i temi)
     @GetMapping
     public List<Themes> getAllThemes() {
         return themesService.getAllThemes();
     }
 
-    // GET /themes/{id}
-    @GetMapping("/{id}")
-    public ResponseEntity<Themes> getThemeById(@PathVariable Long id) {
-        Optional<Themes> theme = themesService.getThemeById(id);
-        return theme.map(ResponseEntity::ok)
+    // GET /themes/movie/{movieId} (Temi di un film specifico)
+    @GetMapping("/movie/{movieId}")
+    public List<Themes> getThemesByMovieId(@PathVariable Long movieId) {
+        return themesService.getThemesByMovieId(movieId);
+    }
+
+    // GET /themes/{movieId}/{theme} (Tema specifico per chiave composta)
+    @GetMapping("/{movieId}/{theme}")
+    public ResponseEntity<Themes> getThemeByCompositeKey(
+            @PathVariable Long movieId,
+            @PathVariable String theme) {
+
+        Optional<Themes> result = themesService.getThemeByCompositeKey(movieId, theme);
+        return result.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // POST /themes
+    // POST /themes (Crea nuovo tema)
     @PostMapping
-    public Themes createTheme(@RequestBody Themes theme) {
-        return themesService.saveTheme(theme);
+    public Themes createTheme(@RequestBody ThemesDTO themeDto) {
+        return themesService.createTheme(themeDto);
     }
 
-    // PUT /themes/{id}
-    @PutMapping("/{id}")
-    public ResponseEntity<Themes> updateTheme(@PathVariable Long id, @RequestBody Themes updatedTheme) {
-        Themes result = themesService.updateTheme(id, updatedTheme);
-        if (result != null) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
+    // DELETE /themes/{movieId}/{theme} (Cancella tema specifico)
+    @DeleteMapping("/{movieId}/{theme}")
+    public ResponseEntity<Void> deleteTheme(
+            @PathVariable Long movieId,
+            @PathVariable String theme) {
 
-    // DELETE /themes/{id}
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTheme(@PathVariable Long id) {
-        boolean deleted = themesService.deleteTheme(id);
+        boolean deleted = themesService.deleteTheme(movieId, theme);
         if (deleted) {
             return ResponseEntity.noContent().build();
         }

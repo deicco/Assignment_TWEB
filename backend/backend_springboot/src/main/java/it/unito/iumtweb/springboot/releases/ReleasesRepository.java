@@ -6,8 +6,11 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ReleasesRepository extends JpaRepository<Releases, Long> {
+public interface ReleasesRepository extends JpaRepository<Releases, ReleasesPrimaryKey> {
 
-    // Esempio: trovare tutte le release per un determinato paese
-    List<Releases> findByCountry(String country);
+    // Esempio: trovare tutte le release per un determinato paese (tramite campo nella PK)
+    List<Releases> findByIdCountry(String country);
+
+    // Trovare tutte le release per un film (tramite campo nella PK)
+    List<Releases> findByIdId(Long movieId);
 }

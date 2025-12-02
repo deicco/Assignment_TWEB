@@ -20,30 +20,55 @@ public class OscarsController {
         return oscarsService.getAllOscars();
     }
 
-    // GET /oscars/film/{filmName} - Ricerca per nome del film
+    // GET /oscars/film/{filmName} - Ricerca per nome del film (Invariato)
     @GetMapping("/film/{filmName}")
     public List<Oscars> getOscarsByFilm(@PathVariable String filmName) {
         return oscarsService.getOscarsByFilm(filmName);
     }
 
-    // GET /oscars/{year_film} - Ricerca per PK (anno del film)
-    @GetMapping("/{year_film}")
-    public ResponseEntity<Oscars> getOscarByFilmYear(@PathVariable int year_film) {
-        Optional<Oscars> oscar = oscarsService.getOscarByFilmYear(year_film);
+    // GET /oscars/{year_film}/{category}/{film} - Ricerca per Chiave Composta (Nuovo)
+    @GetMapping("/{year_film}/{category}/{film}")
+    public ResponseEntity<Oscars> getOscarByCompositeKey(
+            @PathVariable int year_film,
+            @PathVariable String category,
+            @PathVariable String film
+    ) {
+        Optional<Oscars> oscar = oscarsService.getOscarByCompositeKey(year_film, category, film);
         return oscar.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // POST /oscars
+    // POST /oscars (Ora usa DTO)
     @PostMapping
-    public Oscars createOscar(@RequestBody Oscars oscar) {
-        return oscarsService.saveOscar(oscar);
+    public Oscars createOscar(@RequestBody OscarsDTO oscarDto) {
+        return oscarsService.createOscar(oscarDto);
     }
 
-    // DELETE /oscars/{year_film}
-    @DeleteMapping("/{year_film}")
-    public ResponseEntity<Void> deleteOscar(@PathVariable int year_film) {
-        boolean deleted = oscarsService.deleteOscar(year_film);
+    // PUT /oscars/{year_film}/{category}/{film} (Nuovo)
+    @PutMapping("/{year_film}/{category}/{film}")
+    public ResponseEntity<Oscars> updateOscar(
+            @PathVariable int year_film,
+            @PathVariable String category,
+            @PathVariable String film,
+            @RequestBody OscarsDTO updatedDto
+    ) {
+        Oscars result = oscarsService.updateOscar(year_film, category, film, updatedDto);
+        if (result != null) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+
+    // DELETE /oscars/{year_film}/{category}/{film} (Modificato)
+    @DeleteMapping("/{year_film}/{category}/{film}")
+    public ResponseEntity<Void> deleteOscar(
+            @PathVariable int year_film,
+            @PathVariable String category,
+            @PathVariable String film
+    ) {
+        boolean deleted = oscarsService.deleteOscar(year_film, category, film);
         if (deleted) {
             return ResponseEntity.noContent().build();
         }

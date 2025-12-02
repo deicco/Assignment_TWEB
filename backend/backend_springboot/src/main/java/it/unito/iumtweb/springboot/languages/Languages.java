@@ -1,23 +1,26 @@
 package it.unito.iumtweb.springboot.languages;
-import java.util.*;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "languages")
 public class Languages {
 
-    @Id
-    private int id;
+    @EmbeddedId
+    private LanguagesPrimaryKey id;
 
-    private String type;
-    private String language;
+    private String type; // Campo descrittivo (non chiave)
 
-    public int getId() {return id;}
-    public void setId(int id) { this.id = id; }
+    public Languages() {}
 
-    public String getType() {return type;}
+    public LanguagesPrimaryKey getId() { return id; }
+    public void setId(LanguagesPrimaryKey id) { this.id = id; }
+
+    public int getMovieId() { return id.getId(); }
+    public String getLanguage() { return id.getLanguage(); }
+
+    public String getType() { return type; }
     public void setType(String type) { this.type = type; }
 
-    public String getLanguage() {return language;}
-    public void setLanguage(String language) { this.language = language; }
+    public void setLanguage(String language) {
+    }
 }

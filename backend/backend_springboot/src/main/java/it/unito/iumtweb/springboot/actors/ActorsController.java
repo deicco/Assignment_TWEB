@@ -14,26 +14,36 @@ public class ActorsController {
     @Autowired
     private ActorsService actorsService;
 
+    // GET /actors
     @GetMapping
     public List<Actors> getAllActors() {
         return actorsService.getAllActors();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Actors> getActorById(@PathVariable Long id) {
-        Optional<Actors> actor = actorsService.getActorById(id);
+    // GET /actors/movie/{movieId} (Nuovo)
+    @GetMapping("/movie/{movieId}")
+    public List<Actors> getActorsByMovieId(@PathVariable Long movieId) {
+        return actorsService.getActorsByMovieId(movieId);
+    }
+
+    // GET /actors/{movieId}/{actorName} (Ottieni un attore specifico tramite chiave composta)
+    @GetMapping("/{movieId}/{actorName}")
+    public ResponseEntity<Actors> getActorByCompositeId(@PathVariable Long movieId, @PathVariable String actorName) {
+        Optional<Actors> actor = actorsService.getActorByCompositeId(movieId, actorName);
         return actor.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // POST /actors (Ora usa DTO)
     @PostMapping
-    public Actors createActor(@RequestBody Actors actor) {
-        return actorsService.saveActor(actor);
+    public Actors createActor(@RequestBody ActorsDTO actorDto) {
+        return actorsService.createActor(actorDto);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Actors> updateActor(@PathVariable Long id, @RequestBody Actors updatedActor) {
-        Actors result = actorsService.updateActor(id, updatedActor);
+    // PUT /actors/{movieId}/{actorName} (Aggiorna con chiave composta e DTO)
+    @PutMapping("/{movieId}/{actorName}")
+    public ResponseEntity<Actors> updateActor(@PathVariable Long movieId, @PathVariable String actorName, @RequestBody ActorsDTO updatedActorDto) {
+        Actors result = actorsService.updateActor(movieId, actorName, updatedActorDto);
         if (result != null) {
             return ResponseEntity.ok(result);
         } else {
@@ -41,9 +51,10 @@ public class ActorsController {
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteActor(@PathVariable Long id) {
-        boolean deleted = actorsService.deleteActor(id);
+    // DELETE /actors/{movieId}/{actorName} (Elimina con chiave composta)
+    @DeleteMapping("/{movieId}/{actorName}")
+    public ResponseEntity<Void> deleteActor(@PathVariable Long movieId, @PathVariable String actorName) {
+        boolean deleted = actorsService.deleteActor(movieId, actorName);
         if (deleted) {
             return ResponseEntity.noContent().build();
         }

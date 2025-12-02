@@ -6,8 +6,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface OscarsRepository extends JpaRepository<Oscars, Integer> {
+public interface OscarsRepository extends JpaRepository<Oscars, OscarsPrimaryKey> {
 
-    // Esempio: trovare tutte le nomination/premi per un film specifico
-    List<Oscars> findByFilmContainingIgnoreCase(String filmName);
+    // Esempio: trovare tutte le nomination/premi per un film specifico (tramite campo nella PK)
+    List<Oscars> findByIdFilmContainingIgnoreCase(String filmName);
 }

@@ -12,30 +12,58 @@ public class OscarsService {
     @Autowired
     private OscarsRepository oscarsRepository;
 
-    // READ: Ottieni tutte le nomination
+    // READ: Ottieni tutte le nomination (Invariato)
     public List<Oscars> getAllOscars() {
         return oscarsRepository.findAll();
     }
 
-    // READ: Ottieni nomination per l'anno del film (PK)
-    public Optional<Oscars> getOscarByFilmYear(int year_film) {
-        return oscarsRepository.findById(year_film);
+    // READ: Ottieni nomination per chiave composta (Nuova firma)
+    public Optional<Oscars> getOscarByCompositeKey(int year_film, String category, String film) {
+        OscarsPrimaryKey pk = new OscarsPrimaryKey(year_film, category, film);
+        return oscarsRepository.findById(pk);
     }
 
-    // READ: Cerca nomination per nome del film
+    // READ: Cerca nomination per nome del film (Modificato per usare il repository)
     public List<Oscars> getOscarsByFilm(String filmName) {
-        return oscarsRepository.findByFilmContainingIgnoreCase(filmName);
+        return oscarsRepository.findByIdFilmContainingIgnoreCase(filmName);
     }
 
-    // CREATE/UPDATE: Salva o aggiorna una nomination
-    public Oscars saveOscar(Oscars oscar) {
-        return oscarsRepository.save(oscar);
+    // CREATE: Salva una nuova nomination usando il DTO (Modificato)
+    public Oscars createOscar(OscarsDTO oscarDto) {
+        OscarsPrimaryKey pk = new OscarsPrimaryKey(
+                oscarDto.getYear_film(),
+                oscarDto.getCategory(),
+                oscarDto.getFilm()
+        );
+        Oscars newOscar = new Oscars();
+        newOscar.setId(pk);
+        newOscar.setYear_ceremony(oscarDto.getYear_ceremony());
+        newOscar.setCeremony(oscarDto.getCeremony());
+        newOscar.setName(oscarDto.getName());
+        newOscar.setWinner(oscarDto.getWinner());
+        return oscarsRepository.save(newOscar);
     }
 
-    // DELETE: Elimina una nomination per anno del film (PK)
-    public boolean deleteOscar(int year_film) {
-        if (oscarsRepository.existsById(year_film)) {
-            oscarsRepository.deleteById(year_film);
+    // UPDATE: Aggiorna i campi non-chiave di una nomination (Nuovo metodo)
+    public Oscars updateOscar(int year_film, String category, String film, OscarsDTO updatedDto) {
+        OscarsPrimaryKey pk = new OscarsPrimaryKey(year_film, category, film);
+
+        return oscarsRepository.findById(pk)
+                .map(existingOscar -> {
+                    existingOscar.setYear_ceremony(updatedDto.getYear_ceremony());
+                    existingOscar.setCeremony(updatedDto.getCeremony());
+                    existingOscar.setName(updatedDto.getName());
+                    existingOscar.setWinner(updatedDto.getWinner());
+                    return oscarsRepository.save(existingOscar);
+                })
+                .orElse(null);
+    }
+
+    // DELETE: Elimina una nomination per chiave composta (Modificato)
+    public boolean deleteOscar(int year_film, String category, String film) {
+        OscarsPrimaryKey pk = new OscarsPrimaryKey(year_film, category, film);
+        if (oscarsRepository.existsById(pk)) {
+            oscarsRepository.deleteById(pk);
             return true;
         }
         return false;

@@ -6,24 +6,17 @@ import jakarta.persistence.*;
 @Table(name = "genres")
 public class Genres {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;  // <--- Da int a Long
+    @EmbeddedId
+    private GenresPrimaryKey id;
 
-    @Column(name = "genre")
-    private String genre;
+    // Non ci sono altri campi oltre alla chiave (il CSV è solo id, genre)
 
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Genres() {}
 
-    public String getGenre() {
-        return genre;
-    }
-    public void setGenre(String genre) {
-        this.genre = genre;
-    }
+    public GenresPrimaryKey getId() { return id; }
+    public void setId(GenresPrimaryKey id) { this.id = id; }
+
+    // Helper per accesso diretto
+    public Long getMovieId() { return id.getId(); }
+    public String getGenre() { return id.getGenre(); }
 }

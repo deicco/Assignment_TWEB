@@ -1,18 +1,19 @@
 package it.unito.iumtweb.springboot.themes;
-import java.util.*;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "themes")
 public class Themes {
 
-    @Id
-    private Long id;
-    private String theme;
+    @EmbeddedId
+    private ThemesPrimaryKey id;
 
-    public Long getId() {return id;}
-    public void setId(Long id) { this.id = id; }
+    public Themes() {}
 
-    public String getTheme() {return theme;}
-    public void setTheme(String theme) { this.theme = theme; }
+    public ThemesPrimaryKey getId() { return id; }
+    public void setId(ThemesPrimaryKey id) { this.id = id; }
+
+    // Metodi helper opzionali per accedere ai campi della chiave
+    public Long getMovieId() { return id != null ? id.getId() : null; }
+    public String getTheme() { return id != null ? id.getTheme() : null; }
 }

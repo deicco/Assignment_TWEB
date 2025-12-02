@@ -17,32 +17,45 @@ public class ThemesService {
         return themesRepository.findAll();
     }
 
-    // READ: Ottieni un tema per ID
-    public Optional<Themes> getThemeById(Long id) {
-        return themesRepository.findById(id);
+    // READ: Ottieni i temi di un film specifico
+    public List<Themes> getThemesByMovieId(Long movieId) {
+        return themesRepository.findByIdId(movieId);
     }
 
-    // CREATE/UPDATE: Salva o aggiorna un tema
-    public Themes saveTheme(Themes theme) {
-        return themesRepository.save(theme);
+    // READ: Ottieni un tema specifico per chiave composta
+    public Optional<Themes> getThemeByCompositeKey(Long movieId, String theme) {
+        ThemesPrimaryKey pk = new ThemesPrimaryKey(movieId, theme);
+        return themesRepository.findById(pk);
     }
 
-    // UPDATE: Aggiorna un tema esistente
-    public Themes updateTheme(Long id, Themes updatedTheme) {
-        return themesRepository.findById(id)
-                .map(existingTheme -> {
-                    existingTheme.setTheme(updatedTheme.getTheme());
-                    return themesRepository.save(existingTheme);
-                })
-                .orElse(null);
+    // CREATE: Salva un nuovo tema usando il DTO
+    public Themes createTheme(ThemesDTO themeDto) {
+        // Creiamo la chiave composta
+        ThemesPrimaryKey pk = new ThemesPrimaryKey(themeDto.getId(), themeDto.getTheme());
+
+        Themes newTheme = new Themes();
+        newTheme.setId(pk);
+
+        return themesRepository.save(newTheme);
     }
 
-    // DELETE: Elimina un tema per ID
-    public boolean deleteTheme(Long id) {
-        if (themesRepository.existsById(id)) {
-            themesRepository.deleteById(id);
+    // NOTA: Il metodo UPDATE è stato rimosso.
+    // L'entità Themes è composta solo dalla Chiave Primaria.
+    // Non puoi aggiornare una chiave primaria. Se devi cambiare tema,
+    // devi cancellare quello vecchio e crearne uno nuovo.
+
+    // DELETE: Elimina un tema specifico per chiave composta
+    public boolean deleteTheme(Long movieId, String theme) {
+        ThemesPrimaryKey pk = new ThemesPrimaryKey(movieId, theme);
+        if (themesRepository.existsById(pk)) {
+            themesRepository.deleteById(pk);
             return true;
         }
         return false;
+    }
+
+    // Metodo helper per salvataggio diretto (se serve per caricamento dati)
+    public Themes saveTheme(Themes theme) {
+        return themesRepository.save(theme);
     }
 }

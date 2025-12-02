@@ -1,37 +1,32 @@
 package it.unito.iumtweb.springboot.genres;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/genres")
 public class GenresController {
 
     @Autowired
-    private GenresService genresService; // Iniettiamo il Service
+    private GenresService genresService;
 
-    // GET - Recupera tutti i generi con paginazione
     @GetMapping
-    public Page<Genres> getAllGenres(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
-    ) {
-        System.out.println("Request ricevuta su /genres - Page: " + page + " Size: " + size);
-        Pageable pageable = PageRequest.of(page, size);
+    public List<Genres> getAllGenres() { return genresService.getAllGenres(); }
 
-        // La logica di business viene delegata al Service
-        Page<Genres> genresPage = genresService.getAllGenres(pageable);
-
-        System.out.println("Generi trovati: " + genresPage.getTotalElements());
-        return genresPage;
+    @GetMapping("/movie/{id}")
+    public List<Genres> getGenresByMovie(@PathVariable Long id) {
+        return genresService.getGenresByMovieId(id);
     }
 
-    // Aggiungo un semplice endpoint POST per aggiungere nuovi generi (CRUD completo)
     @PostMapping
-    public Genres createGenre(@RequestBody Genres genre) {
-        return genresService.saveGenre(genre);
+    public Genres createGenre(@RequestBody GenresDTO dto) {
+        return genresService.createGenre(dto);
+    }
+
+    @DeleteMapping("/{id}/{genre}")
+    public ResponseEntity<Void> deleteGenre(@PathVariable Long id, @PathVariable String genre) {
+        return genresService.deleteGenre(id, genre) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }

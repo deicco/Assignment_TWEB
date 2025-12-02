@@ -5,8 +5,11 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface CountryRepository extends JpaRepository<Country, Long> {
+public interface CountryRepository extends JpaRepository<Country, CountryPrimaryKey> {
 
-    // Cerca tutte le nazioni associate a un determinato ID film
-    List<Country> findByMovieId(Long movieId);
+    // Spring Data cercherà dentro "id" (PK) il campo "MovieId". Ora esiste!
+    List<Country> findByIdMovieId(Long movieId);
+
+    // Cerca per country
+    List<Country> findByIdCountry(String country);
 }

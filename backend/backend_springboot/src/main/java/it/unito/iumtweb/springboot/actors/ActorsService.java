@@ -12,38 +12,55 @@ public class ActorsService {
     @Autowired
     private ActorsRepository actorsRepository;
 
-    // Ottieni tutti gli attori
+    // READ: Ottieni tutti gli attori
     public List<Actors> getAllActors() {
         return actorsRepository.findAll();
     }
 
-    // Ottieni attore per ID
-    public Optional<Actors> getActorById(Long id) {
-        return actorsRepository.findById(id);
+    // READ: Ottieni attori per ID Film
+    public List<Actors> getActorsByMovieId(Long movieId) {
+        return actorsRepository.findByIdId(movieId);
     }
 
-    // Crea o salva un attore
-    public Actors saveActor(Actors actor) {
-        return actorsRepository.save(actor);
+    // READ: Ottieni un attore specifico tramite chiave composta
+    public Optional<Actors> getActorByCompositeId(Long movieId, String actorName) {
+        ActorsPrimaryKey pk = new ActorsPrimaryKey(movieId, actorName);
+        return actorsRepository.findById(pk);
     }
 
-    // Aggiorna attore
-    public Actors updateActor(Long id, Actors updatedActor) {
-        return actorsRepository.findById(id)
+    // CREATE: Salva un nuovo attore (associazione) usando DTO
+    public Actors createActor(ActorsDTO actorDto) {
+        ActorsPrimaryKey pk = new ActorsPrimaryKey(actorDto.getRole(), actorDto.getName());
+        Actors newActor = new Actors();
+        newActor.setId(pk);
+        newActor.setRole(actorDto.getRole());
+        return actorsRepository.save(newActor);
+    }
+
+    // UPDATE: Aggiorna il ruolo di un attore esistente
+    public Actors updateActor(Long movieId, String actorName, ActorsDTO updatedActorDto) {
+        ActorsPrimaryKey pk = new ActorsPrimaryKey(movieId, actorName);
+        return actorsRepository.findById(pk)
                 .map(existingActor -> {
-                    existingActor.setName(updatedActor.getName());
-                    existingActor.setRole(updatedActor.getRole());
+                    // Aggiorna solo il campo non-chiave 'role'
+                    existingActor.setRole(updatedActorDto.getRole());
                     return actorsRepository.save(existingActor);
                 })
-                .orElse(null); // Ritorna null se l'attore non esiste
+                .orElse(null);
     }
 
-    // Elimina attore
-    public boolean deleteActor(Long id) {
-        if (actorsRepository.existsById(id)) {
-            actorsRepository.deleteById(id);
+    // DELETE: Elimina attore per chiave composta
+    public boolean deleteActor(Long movieId, String actorName) {
+        ActorsPrimaryKey pk = new ActorsPrimaryKey(movieId, actorName);
+        if (actorsRepository.existsById(pk)) {
+            actorsRepository.deleteById(pk);
             return true;
         }
         return false;
+    }
+
+    // Metodo save generico (mantenuto)
+    public Actors saveActor(Actors actor) {
+        return actorsRepository.save(actor);
     }
 }

@@ -5,7 +5,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/languages")
@@ -20,24 +19,29 @@ public class LanguagesController {
         return languagesService.getAllLanguages();
     }
 
-    // GET /languages/{id}
-    @GetMapping("/{id}")
-    public ResponseEntity<Languages> getLanguageById(@PathVariable int id) {
-        Optional<Languages> language = languagesService.getLanguageById(id);
-        return language.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    // GET /languages/{movieId}
+    // Restituisce la LISTA delle lingue per quel film
+    @GetMapping("/{movieId}")
+    public List<Languages> getLanguagesByMovieId(@PathVariable int movieId) {
+        return languagesService.getLanguagesByMovieId(movieId);
     }
 
     // POST /languages
     @PostMapping
-    public Languages createLanguage(@RequestBody Languages language) {
-        return languagesService.saveLanguage(language);
+    public Languages createLanguage(@RequestBody LanguagesDTO languageDto) {
+        return languagesService.createLanguage(languageDto);
     }
 
-    // PUT /languages/{id}
-    @PutMapping("/{id}")
-    public ResponseEntity<Languages> updateLanguage(@PathVariable int id, @RequestBody Languages updatedLanguage) {
-        Languages result = languagesService.updateLanguage(id, updatedLanguage);
+    // PUT /languages/{movieId}/{language}
+    // Esempio: PUT /languages/1/English
+    @PutMapping("/{movieId}/{language}")
+    public ResponseEntity<Languages> updateLanguage(
+            @PathVariable int movieId,
+            @PathVariable String language,
+            @RequestBody LanguagesDTO updatedLanguageDto) {
+
+        Languages result = languagesService.updateLanguage(movieId, language, updatedLanguageDto);
+
         if (result != null) {
             return ResponseEntity.ok(result);
         } else {
@@ -45,10 +49,11 @@ public class LanguagesController {
         }
     }
 
-    // DELETE /languages/{id}
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteLanguage(@PathVariable int id) {
-        boolean deleted = languagesService.deleteLanguage(id);
+    // DELETE /languages/{movieId}/{language}
+    // Cancella una lingua specifica. Esempio: DELETE /languages/1/English
+    @DeleteMapping("/{movieId}/{language}")
+    public ResponseEntity<Void> deleteLanguage(@PathVariable int movieId, @PathVariable String language) {
+        boolean deleted = languagesService.deleteLanguage(movieId, language);
         if (deleted) {
             return ResponseEntity.noContent().build();
         }

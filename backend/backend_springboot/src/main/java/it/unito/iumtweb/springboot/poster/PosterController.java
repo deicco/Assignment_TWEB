@@ -14,13 +14,13 @@ public class PosterController {
     @Autowired
     private PostersService postersService;
 
-    // GET /posters
+    // GET /posters (Invariato)
     @GetMapping
     public List<Poster> getAllPosters() {
         return postersService.getAllPosters();
     }
 
-    // GET /posters/{id} (Ricerca per ID film)
+    // GET /posters/{id} (Ricerca per ID film) (Invariato)
     @GetMapping("/{id}")
     public ResponseEntity<Poster> getPosterById(@PathVariable Long id) {
         Optional<Poster> poster = postersService.getPosterById(id);
@@ -28,16 +28,16 @@ public class PosterController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // POST /posters
-    @PostMapping
-    public Poster createPoster(@RequestBody Poster poster) {
-        return postersService.savePoster(poster);
+    // POST /posters/{id} - L'ID deve essere fornito nel path per la creazione (ID film) (Modificato)
+    @PostMapping("/{id}")
+    public Poster createPoster(@PathVariable Long id, @RequestBody PosterDTO posterDto) {
+        return postersService.createPoster(id, posterDto);
     }
 
-    // PUT /posters/{id}
+    // PUT /posters/{id} (Ora usa DTO)
     @PutMapping("/{id}")
-    public ResponseEntity<Poster> updatePoster(@PathVariable Long id, @RequestBody Poster updatedPoster) {
-        Poster result = postersService.updatePoster(id, updatedPoster);
+    public ResponseEntity<Poster> updatePoster(@PathVariable Long id, @RequestBody PosterDTO updatedPosterDto) {
+        Poster result = postersService.updatePoster(id, updatedPosterDto);
         if (result != null) {
             return ResponseEntity.ok(result);
         } else {
@@ -45,7 +45,7 @@ public class PosterController {
         }
     }
 
-    // DELETE /posters/{id}
+    // DELETE /posters/{id} (Invariato)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePoster(@PathVariable Long id) {
         boolean deleted = postersService.deletePoster(id);

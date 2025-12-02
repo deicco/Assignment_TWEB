@@ -16,7 +16,7 @@ public class MoviesController {
     @Autowired
     private MoviesService service;
 
-    // ... (listMovies resta invariato) ...
+    // GET /movies (Invariato)
     @GetMapping
     public Page<Movies> listMovies(
             @RequestParam(required = false) String name,
@@ -31,7 +31,7 @@ public class MoviesController {
         return service.getMovies(name, minRating, maxRating, startDate, endDate, pageable);
     }
 
-    // Aggiornato: da int a Long
+    // GET /movies/{id} (Invariato)
     @GetMapping("/{id}")
     public ResponseEntity<Movies> getOne(@PathVariable Long id) {
         return service.getMovieById(id)
@@ -39,25 +39,25 @@ public class MoviesController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // ... (create resta invariato) ...
+    // POST /movies (Ora usa DTO)
     @PostMapping
-    public ResponseEntity<Movies> create(@RequestBody Movies movie) {
-        Movies saved = service.createMovie(movie);
+    public ResponseEntity<Movies> create(@RequestBody MoviesDTO movieDto) {
+        Movies saved = service.createMovie(movieDto);
         return ResponseEntity.ok(saved);
     }
 
-    // Aggiornato: da int a Long
+    // PUT /movies/{id} (Ora usa DTO)
     @PutMapping("/{id}")
     public ResponseEntity<Movies> update(
             @PathVariable Long id,
-            @RequestBody Movies movie
+            @RequestBody MoviesDTO movieDto
     ) {
-        return service.updateMovie(id, movie)
+        return service.updateMovie(id, movieDto)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Aggiornato: da int a Long
+    // DELETE /movies/{id} (Invariato)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         return service.deleteMovie(id)

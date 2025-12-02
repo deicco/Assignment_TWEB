@@ -1,23 +1,31 @@
 package it.unito.iumtweb.springboot.releases;
-import java.util.*;
+import java.util.Date;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "releases")
 public class Releases {
 
-    @Id
-    private Long id;
-    private String country;
+    @EmbeddedId // Usa la chiave composta
+    private ReleasesPrimaryKey id;
+
+    // I campi 'id' e 'country' sono ora nella PK.
     private Date date;
     private String type;
-    private Float rating;
+    private Float rating; // Usare Float per consistenza con i getter/setter di Movies
 
-    public Long getId() {return id;}
-    public void setId(Long id) { this.id = id; }
+    public Releases() {}
 
-    public String getCountry() {return country;}
-    public void setCountry(String country) { this.country = country; }
+    // --- Getters e Setters ---
+
+    public ReleasesPrimaryKey getId() {return id;}
+    public void setId(ReleasesPrimaryKey id) { this.id = id; }
+
+    // I metodi per id e country ora usano la PK
+    public Long getMovieId() { return id.getId(); }
+    public String getCountry() { return id.getCountry(); }
+
+    // Non servono setter per MovieId e Country, si setta tramite PK
 
     public Date getDate() {return date;}
     public void setDate(Date date) { this.date = date; }
@@ -25,6 +33,6 @@ public class Releases {
     public String getType() {return type;}
     public void setType(String type) { this.type = type; }
 
-    public float getRating() {return rating;}
-    public void setRating(float rating) { this.rating = rating; }
+    public Float getRating() {return rating;}
+    public void setRating(Float rating) { this.rating = rating; }
 }

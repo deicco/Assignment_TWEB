@@ -2,23 +2,26 @@ package it.unito.iumtweb.springboot.releases;
 
 import java.util.Date;
 
+/**
+ * Data Transfer Object (DTO) for the Releases entity.
+ * <p>
+ * Transfers release information between client and server.
+ * </p>
+ */
 public class ReleasesDTO {
 
-    // Campi Chiave
-    private Long id; // ID del Film
+    private Long movieId; // Renamed from 'id' for clarity
     private String country;
-
-    // Campi Non-Chiave
     private Date date;
     private String type;
     private Float rating;
 
     public ReleasesDTO() {}
 
-    // --- Getters e Setters ---
+    // --- Getters and Setters ---
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getMovieId() { return movieId; }
+    public void setMovieId(Long movieId) { this.movieId = movieId; }
 
     public String getCountry() { return country; }
     public void setCountry(String country) { this.country = country; }

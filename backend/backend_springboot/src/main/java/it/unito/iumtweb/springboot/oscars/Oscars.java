@@ -1,67 +1,48 @@
 package it.unito.iumtweb.springboot.oscars;
+
 import jakarta.persistence.*;
 
+/**
+ * JPA Entity representing the 'oscars' table.
+ * <p>
+ * Maps the additional dataset regarding Academy Awards (Oscars).
+ * Used by journalists/experts to analyze winners and nominees.
+ * </p>
+ */
 @Entity
 @Table(name = "oscars")
 public class Oscars {
 
-    @EmbeddedId // Usa la chiave composta
+    /** The composite primary key. */
+    @EmbeddedId
     private OscarsPrimaryKey id;
 
     private int year_ceremony;
     private int ceremony;
-    private String name;
-    private Boolean winner; // Usare Boolean per consistenza con il tuo file originale
 
+    // Note: 'name' is now part of the Primary Key, so it's not a separate field here.
+
+    private Boolean winner;
+
+    /** Default constructor. */
     public Oscars() {}
 
-    // --- Getters e Setters ---
+    // --- Getters and Setters ---
 
     public OscarsPrimaryKey getId() { return id; }
     public void setId(OscarsPrimaryKey id) { this.id = id; }
 
-    public int getYear_film() {
-        return id.getYear_film(); // Recuperato dalla PK
-    }
-    // non serve setYear_film, si setta tramite PK
+    public int getYear_film() { return id != null ? id.getYear_film() : 0; }
+    public String getCategory() { return id != null ? id.getCategory() : null; }
+    public String getFilm() { return id != null ? id.getFilm() : null; }
+    public String getName() { return id != null ? id.getName() : null; }
 
-    public int getYear_ceremony() {
-        return year_ceremony;
-    }
-    public void setYear_ceremony(int year_ceremony) {
-        this.year_ceremony = year_ceremony;
-    }
+    public int getYear_ceremony() { return year_ceremony; }
+    public void setYear_ceremony(int year_ceremony) { this.year_ceremony = year_ceremony; }
 
-    public int getCeremony() {
-        return ceremony;
-    }
-    public void setCeremony(int ceremony) {
-        this.ceremony = ceremony;
-    }
+    public int getCeremony() { return ceremony; }
+    public void setCeremony(int ceremony) { this.ceremony = ceremony; }
 
-    public String getCategory() {
-        return id.getCategory(); // Recuperato dalla PK
-    }
-    // non serve setCategory, si setta tramite PK
-
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getFilm() {
-        return id.getFilm(); // Recuperato dalla PK
-    }
-    // non serve setFilm, si setta tramite PK
-
-    // Metodo getIsWinner modificato per consistenza
-    public Boolean getWinner() {
-        return winner;
-    }
-
-    public void setWinner(Boolean winner) {
-        this.winner = winner;
-    }
+    public Boolean getWinner() { return winner; }
+    public void setWinner(Boolean winner) { this.winner = winner; }
 }

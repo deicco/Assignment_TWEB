@@ -1,20 +1,28 @@
 package it.unito.iumtweb.springboot.movies;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
+/**
+ * Data Transfer Object (DTO) for the Movies entity.
+ * <p>
+ * Used to transfer movie data between the client and the server.
+ * Decouples the API layer from the Database layer.
+ * </p>
+ */
 public class MoviesDTO {
 
     private String name;
-    private LocalDateTime date;
+    private LocalDate date;
     private String tagline;
     private String description;
     private int minute;
     private Float rating;
 
+    /** Default constructor. */
     public MoviesDTO() {}
 
-    // Costruttore completo (opzionale ma utile)
-    public MoviesDTO(String name, LocalDateTime date, String tagline, String description, int minute, Float rating) {
+    /** Full constructor. */
+    public MoviesDTO(String name, LocalDate date, String tagline, String description, int minute, Float rating) {
         this.name = name;
         this.date = date;
         this.tagline = tagline;
@@ -28,8 +36,8 @@ public class MoviesDTO {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public LocalDateTime getDate() { return date; }
-    public void setDate(LocalDateTime date) { this.date = date; }
+    public LocalDate getDate() { return date; }
+    public void setDate(LocalDate date) { this.date = date; }
 
     public String getTagline() { return tagline; }
     public void setTagline(String tagline) { this.tagline = tagline; }

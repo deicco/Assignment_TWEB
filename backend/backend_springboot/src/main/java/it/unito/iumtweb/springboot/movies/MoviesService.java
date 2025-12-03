@@ -8,6 +8,12 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
 
+/**
+ * Service class encapsulating business logic for Movie management.
+ * <p>
+ * Handles filtering logic, data transformation, and transaction management.
+ * </p>
+ */
 @Service
 public class MoviesService {
 
@@ -15,7 +21,24 @@ public class MoviesService {
     private MoviesRepository repo;
 
     /**
-     * Recupera una pagina di film con filtri (Invariato)
+     * Retrieves a paginated list of movies based on optional filters.
+     * <p>
+     * Filters are applied hierarchically:
+     * 1. Name search
+     * 2. Rating range
+     * 3. Date range
+     * 4. Duration (minute) filter
+     * If no filters are provided, returns all movies.
+     * </p>
+     *
+     * @param name Name keyword.
+     * @param minRating Minimum rating.
+     * @param maxRating Maximum rating.
+     * @param startDate Start date.
+     * @param endDate End date.
+     * @param minMinute Minimum duration.
+     * @param pageable Pagination info.
+     * @return A {@link Page} of {@link Movies}.
      */
     public Page<Movies> getMovies(
             String name,
@@ -23,6 +46,7 @@ public class MoviesService {
             Float maxRating,
             LocalDateTime startDate,
             LocalDateTime endDate,
+            Integer minMinute,
             Pageable pageable
     ) {
         if (name != null && !name.isBlank()) {
@@ -34,57 +58,55 @@ public class MoviesService {
         if (startDate != null && endDate != null) {
             return repo.findByDateBetween(startDate, endDate, pageable);
         }
+        if (minMinute != null) {
+            return repo.findByMinuteGreaterThan(minMinute, pageable);
+        }
         return repo.findAll(pageable);
     }
 
-    // Metodo aggiornato: da int a Long (Invariato)
+    /**
+     * Retrieves a single movie by its ID.
+     */
     public Optional<Movies> getMovieById(Long id) {
         return repo.findById(id);
     }
 
-    // CREATE: Crea un nuovo film usando il DTO (Modificato)
+    /**
+     * Creates a new movie entry from a DTO.
+     */
     public Movies createMovie(MoviesDTO movieDto) {
         Movies newMovie = new Movies();
-
-        // Mappatura DTO -> Entity
         newMovie.setName(movieDto.getName());
         newMovie.setDate(movieDto.getDate());
         newMovie.setTagline(movieDto.getTagline());
         newMovie.setDescription(movieDto.getDescription());
         newMovie.setMinute(movieDto.getMinute());
         newMovie.setRating(movieDto.getRating());
-
         return repo.save(newMovie);
     }
 
-    // UPDATE: Aggiorna un film esistente usando il DTO (Modificato)
+    /**
+     * Updates an existing movie entry.
+     */
     public Optional<Movies> updateMovie(Long id, MoviesDTO updatedDto) {
         return repo.findById(id)
                 .map(existing -> {
-                    // Aggiorna l'entità esistente con i dati del DTO
                     existing.setName(updatedDto.getName());
                     existing.setDate(updatedDto.getDate());
                     existing.setTagline(updatedDto.getTagline());
                     existing.setDescription(updatedDto.getDescription());
                     existing.setMinute(updatedDto.getMinute());
                     existing.setRating(updatedDto.getRating());
-
                     return repo.save(existing);
                 });
     }
 
-    // Metodo aggiornato: da int a Long (Invariato)
+    /**
+     * Deletes a movie by ID.
+     */
     public boolean deleteMovie(Long id) {
         if (!repo.existsById(id)) return false;
         repo.deleteById(id);
         return true;
     }
-
-    // Aggiunto per il CsvDataLoader (Invariato)
-    public List<Movies> findAll() {
-        return repo.findAll();
-    }
-
-    // Il vecchio metodo createMovie(Movies m) è stato sostituito da createMovie(MoviesDTO m)
-    // Similmente, updateMovie(Long id, Movies updated) è stato sostituito da updateMovie(Long id, MoviesDTO updatedDto)
 }

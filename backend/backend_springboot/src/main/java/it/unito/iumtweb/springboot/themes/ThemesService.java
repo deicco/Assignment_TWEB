@@ -1,50 +1,70 @@
 package it.unito.iumtweb.springboot.themes;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Service class encapsulating business logic for Theme management.
+ * <p>
+ * Handles data retrieval, pagination, and persistence.
+ * </p>
+ */
 @Service
 public class ThemesService {
 
     @Autowired
     private ThemesRepository themesRepository;
 
-    // READ: Ottieni tutti i temi
-    public List<Themes> getAllThemes() {
-        return themesRepository.findAll();
+    /**
+     * Retrieves all themes with pagination.
+     * <p>
+     * <b>Mandatory:</b> Prevents OutOfMemory errors.
+     * </p>
+     */
+    public Page<Themes> getAllThemes(Pageable pageable) {
+        return themesRepository.findAll(pageable);
     }
 
-    // READ: Ottieni i temi di un film specifico
+    /**
+     * Searches for themes by name with pagination.
+     */
+    public Page<Themes> searchThemes(String keyword, Pageable pageable) {
+        return themesRepository.findByIdThemeContainingIgnoreCase(keyword, pageable);
+    }
+
+    /**
+     * Retrieves themes by movie ID.
+     */
     public List<Themes> getThemesByMovieId(Long movieId) {
-        return themesRepository.findByIdId(movieId);
+        return themesRepository.findByIdMovieId(movieId);
     }
 
-    // READ: Ottieni un tema specifico per chiave composta
+    /**
+     * Retrieves a specific theme by composite key.
+     */
     public Optional<Themes> getThemeByCompositeKey(Long movieId, String theme) {
         ThemesPrimaryKey pk = new ThemesPrimaryKey(movieId, theme);
         return themesRepository.findById(pk);
     }
 
-    // CREATE: Salva un nuovo tema usando il DTO
+    /**
+     * Creates a new theme association.
+     */
     public Themes createTheme(ThemesDTO themeDto) {
-        // Creiamo la chiave composta
-        ThemesPrimaryKey pk = new ThemesPrimaryKey(themeDto.getId(), themeDto.getTheme());
-
+        ThemesPrimaryKey pk = new ThemesPrimaryKey(themeDto.getMovieId(), themeDto.getTheme());
         Themes newTheme = new Themes();
         newTheme.setId(pk);
-
         return themesRepository.save(newTheme);
     }
 
-    // NOTA: Il metodo UPDATE è stato rimosso.
-    // L'entità Themes è composta solo dalla Chiave Primaria.
-    // Non puoi aggiornare una chiave primaria. Se devi cambiare tema,
-    // devi cancellare quello vecchio e crearne uno nuovo.
-
-    // DELETE: Elimina un tema specifico per chiave composta
+    /**
+     * Deletes a theme association.
+     */
     public boolean deleteTheme(Long movieId, String theme) {
         ThemesPrimaryKey pk = new ThemesPrimaryKey(movieId, theme);
         if (themesRepository.existsById(pk)) {
@@ -52,10 +72,5 @@ public class ThemesService {
             return true;
         }
         return false;
-    }
-
-    // Metodo helper per salvataggio diretto (se serve per caricamento dati)
-    public Themes saveTheme(Themes theme) {
-        return themesRepository.save(theme);
     }
 }

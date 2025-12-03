@@ -1,31 +1,44 @@
 package it.unito.iumtweb.springboot.releases;
+
 import java.util.Date;
 import jakarta.persistence.*;
 
+/**
+ * JPA Entity representing the 'releases' table.
+ * <p>
+ * Contains data about film release dates, types (Theatrical/Digital), and ratings
+ * in different countries.
+ * This is the largest dataset (13M+ rows), so performance is critical.
+ * </p>
+ */
 @Entity
 @Table(name = "releases")
 public class Releases {
 
-    @EmbeddedId // Usa la chiave composta
+    /** The composite primary key. */
+    @EmbeddedId
     private ReleasesPrimaryKey id;
 
-    // I campi 'id' e 'country' sono ora nella PK.
+    /** The release date. */
     private Date date;
-    private String type;
-    private Float rating; // Usare Float per consistenza con i getter/setter di Movies
 
+    /** The release type (e.g., "Theatrical", "Digital"). */
+    private String type;
+
+    /** The rating certification in that country (e.g., "PG-13", "R"). */
+    private Float rating;
+
+    /** Default constructor. */
     public Releases() {}
 
-    // --- Getters e Setters ---
+    // --- Getters and Setters ---
 
     public ReleasesPrimaryKey getId() {return id;}
     public void setId(ReleasesPrimaryKey id) { this.id = id; }
 
-    // I metodi per id e country ora usano la PK
-    public Long getMovieId() { return id.getId(); }
-    public String getCountry() { return id.getCountry(); }
-
-    // Non servono setter per MovieId e Country, si setta tramite PK
+    // Helper methods for direct access
+    public Long getMovieId() { return id != null ? id.getMovieId() : null; }
+    public String getCountry() { return id != null ? id.getCountry() : null; }
 
     public Date getDate() {return date;}
     public void setDate(Date date) { this.date = date; }

@@ -1,53 +1,73 @@
 package it.unito.iumtweb.springboot.poster;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
+/**
+ * Service class encapsulating business logic for Poster management.
+ * <p>
+ * Handles retrieval and persistence of movie poster links.
+ * </p>
+ */
 @Service
 public class PostersService {
 
     @Autowired
     private PosterRepository posterRepository;
 
-    // READ: Ottieni tutti i poster (Invariato)
-    public List<Poster> getAllPosters() {
-        return posterRepository.findAll();
+    /**
+     * Retrieves all posters with pagination.
+     * <p>
+     * <b>Mandatory:</b> Prevents OutOfMemory errors on large dataset (940k rows).
+     * </p>
+     *
+     * @param pageable Pagination info.
+     * @return A {@link Page} of {@link Poster}.
+     */
+    public Page<Poster> getAllPosters(Pageable pageable) {
+        return posterRepository.findAll(pageable);
     }
 
-    // READ: Ottieni un poster per ID (presumibilmente ID del film) (Invariato)
+    /**
+     * Retrieves a poster by Movie ID.
+     */
     public Optional<Poster> getPosterById(Long id) {
         return posterRepository.findById(id);
     }
 
-    // CREATE: Salva un nuovo poster usando DTO e ID del film
+    /**
+     * Creates a new poster entry.
+     *
+     * @param movieId The ID of the film (used as PK).
+     * @param posterDto The DTO containing the link.
+     * @return The saved entity.
+     */
     public Poster createPoster(Long movieId, PosterDTO posterDto) {
         Poster newPoster = new Poster();
-        // L'ID è l'ID del film
         newPoster.setId(movieId);
         newPoster.setLink(posterDto.getLink());
         return posterRepository.save(newPoster);
     }
 
-    // CREATE/UPDATE: Salva o aggiorna un poster (Metodo originale, mantenuto se serve)
-    public Poster savePoster(Poster poster) {
-        return posterRepository.save(poster);
-    }
-
-    // UPDATE: Aggiorna un poster esistente usando DTO
+    /**
+     * Updates an existing poster link.
+     */
     public Poster updatePoster(Long id, PosterDTO updatedPosterDto) {
         return posterRepository.findById(id)
                 .map(existingPoster -> {
-                    // Aggiorna solo il campo non-chiave 'link'
                     existingPoster.setLink(updatedPosterDto.getLink());
                     return posterRepository.save(existingPoster);
                 })
                 .orElse(null);
     }
 
-    // DELETE: Elimina un poster per ID (Invariato)
+    /**
+     * Deletes a poster.
+     */
     public boolean deletePoster(Long id) {
         if (posterRepository.existsById(id)) {
             posterRepository.deleteById(id);

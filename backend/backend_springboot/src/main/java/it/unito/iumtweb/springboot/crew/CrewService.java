@@ -1,54 +1,95 @@
 package it.unito.iumtweb.springboot.crew;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Service class encapsulating business logic for Crew management.
+ * <p>
+ * Handles data retrieval, pagination, and persistence for crew members.
+ * </p>
+ */
 @Service
 public class CrewService {
 
     @Autowired
     private CrewRepository crewRepository;
 
-    // READ: Ottieni tutte le associazioni
-    public List<Crew> getAllCrew() {
-        return crewRepository.findAll();
+    /**
+     * Retrieves all crew entries with pagination.
+     * <p>
+     * <b>Mandatory:</b> Without pagination, fetching 4.7M records would crash the server.
+     * </p>
+     *
+     * @param pageable Pagination information.
+     * @return A {@link Page} of {@link Crew}.
+     */
+    public Page<Crew> getAllCrew(Pageable pageable) {
+        return crewRepository.findAll(pageable);
     }
 
-    // READ: Ottieni crew per ID Film
+    /**
+     * Searches crew members by name or role.
+     *
+     * @param name     Optional name filter.
+     * @param role     Optional role filter.
+     * @param pageable Pagination info.
+     * @return A {@link Page} of matching results.
+     */
+    public Page<Crew> searchCrew(String name, String role, Pageable pageable) {
+        if (name != null && !name.isEmpty()) {
+            return crewRepository.findByIdCrewNameContainingIgnoreCase(name, pageable);
+        } else if (role != null && !role.isEmpty()) {
+            return crewRepository.findByRoleContainingIgnoreCase(role, pageable);
+        }
+        return crewRepository.findAll(pageable);
+    }
+
+    /**
+     * Retrieves crew by Movie ID.
+     */
     public List<Crew> getCrewByMovieId(Long movieId) {
         return crewRepository.findByIdMovieId(movieId);
     }
 
-    // READ: Ottieni un membro specifico tramite chiave composta
+    /**
+     * Retrieves a specific member by composite ID.
+     */
     public Optional<Crew> getCrewByCompositeId(Long movieId, String crewName) {
         CrewPrimaryKey pk = new CrewPrimaryKey(movieId, crewName);
         return crewRepository.findById(pk);
     }
 
-    // CREATE: Salva un nuovo membro del crew (associazione) usando DTO
+    /**
+     * Creates a new crew member association.
+     */
     public Crew createCrew(CrewDTO crewDto) {
         CrewPrimaryKey pk = new CrewPrimaryKey(crewDto.getMovieId(), crewDto.getCrewName());
         Crew newCrew = new Crew(pk, crewDto.getRole());
         return crewRepository.save(newCrew);
     }
 
-    // UPDATE: Aggiorna un membro del crew esistente usando DTO e chiave
+    /**
+     * Updates an existing crew member's role.
+     */
     public Crew updateCrew(Long movieId, String crewName, CrewDTO updatedCrewDto) {
         CrewPrimaryKey pk = new CrewPrimaryKey(movieId, crewName);
-
         return crewRepository.findById(pk)
                 .map(existingCrew -> {
-                    // Si aggiorna solo il campo non-chiave (role)
                     existingCrew.setRole(updatedCrewDto.getRole());
                     return crewRepository.save(existingCrew);
                 })
                 .orElse(null);
     }
 
-    // DELETE: Elimina un membro del crew per chiave composta
+    /**
+     * Deletes a crew member.
+     */
     public boolean deleteCrew(Long movieId, String crewName) {
         CrewPrimaryKey pk = new CrewPrimaryKey(movieId, crewName);
         if (crewRepository.existsById(pk)) {
@@ -56,10 +97,5 @@ public class CrewService {
             return true;
         }
         return false;
-    }
-
-    // Metodo di salvataggio generico (come da tua versione originale, mantenuto per data loading)
-    public Crew saveCrew(Crew crew) {
-        return crewRepository.save(crew);
     }
 }

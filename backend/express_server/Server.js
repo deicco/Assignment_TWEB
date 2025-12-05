@@ -3,8 +3,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const fs = require('fs');
+const path = require('path');
 const csv = require('csv-parser');
-const Review = require('./Review'); // Importa il modello appena creato
+const Review = require('./Reviews'); // Importa il modello appena creato
 
 const app = express();
 const PORT = 3001; // Porta dedicata per il server delle recensioni (Dati Dinamici)
@@ -15,7 +16,7 @@ app.use(express.json());
 
 // Connessione a MongoDB
 // Assicurati che il tuo servizio MongoDB sia attivo (mongod)
-mongoose.connect('mongodb://localhost:27017/ium_reviews')
+mongoose.connect('mongodb://localhost:27017/mydatabase')
     .then(() => {
         console.log('✅ MongoDB Connesso');
         checkAndImportData(); // Avvia il controllo e l'importazione
@@ -59,8 +60,13 @@ async function checkAndImportData() {
             const reviews = [];
             const BATCH_SIZE = 5000; // Inserimento a blocchi per gestire la RAM
 
-            fs.createReadStream('rotten_tomatoes_reviews.csv')
-                .pipe(csv())
+            const csvPath = path.join(
+                'C:', 'Users', 'Windows11', 'Desktop',
+                'Assignment_IUM_TWEB', 'solution', 'data',
+                'rotten_tomatoes_reviews.csv'
+            );
+
+            fs.createReadStream(csvPath, { objectMode: false })                .pipe(csv())
                 .on('data', (data) => {
                     reviews.push({
                         rotten_tomatoes_link: "https://www.rottentomatoes.com/" + data.rotten_tomatoes_link,

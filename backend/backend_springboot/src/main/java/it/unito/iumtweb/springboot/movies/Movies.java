@@ -16,13 +16,13 @@ import jakarta.persistence.*;
 @Table(name = "movies")
 public class Movies {
 
-    /**
-     * The unique identifier for the movie.
-     * Acts as the Primary Key for this table and Foreign Key for related tables.
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+        // 1. Definiamo un generatore di sequenza con il nome standard di Postgres
+        @SequenceGenerator(name = "movies_seq", sequenceName = "movies_id_seq", allocationSize = 1)
+
+        @Id
+        // 2. Usiamo la strategia SEQUENCE e puntiamo al generatore definito sopra
+        @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "movies_seq")
+        private Long id;
 
     /** The title of the movie. */
     private String name;

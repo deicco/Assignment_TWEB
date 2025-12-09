@@ -8,18 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * REST Controller for managing Crew resources.
- * <p>
- * Exposes endpoints to query film crew data (Directors, Writers, etc.).
- * Supports pagination and search to handle the large dataset (4.7M entries).
- * </p>
  */
 @RestController
 @RequestMapping("/crew")
-// Enables Cross-Origin requests from the Express Server
 @CrossOrigin(origins = "http://localhost:3000")
 public class CrewController {
 
@@ -28,16 +22,7 @@ public class CrewController {
 
     /**
      * GET /crew
-     * Retrieves a paginated list of crew members. Can filter by name or role.
-     * <p>
-     * Example: /crew?role=Director&page=0&size=10
-     * </p>
-     *
-     * @param page Page number (default 0).
-     * @param size Items per page (default 20).
-     * @param name Optional search by name.
-     * @param role Optional search by role.
-     * @return A {@link Page} of {@link Crew}.
+     * List all crew with filters.
      */
     @GetMapping
     public ResponseEntity<Page<Crew>> getAllCrew(
@@ -52,60 +37,52 @@ public class CrewController {
 
     /**
      * GET /crew/movie/{movieId}
-     * Retrieves all crew members for a specific movie.
-     *
-     * @param movieId The movie ID.
-     * @return List of crew members.
+     * Get crew for a movie.
      */
     @GetMapping("/movie/{movieId}")
-    public List<Crew> getCrewByMovieId(@PathVariable Long movieId) {
+    public List<Crew> getCrewByMovieId(@PathVariable Integer movieId) {
         return crewService.getCrewByMovieId(movieId);
     }
 
     /**
-     * GET /crew/{movieId}/{crewName}
-     * Retrieves a specific member by composite key.
+     * GET /crew/{id}
+     * Get by unique ID.
      */
-    @GetMapping("/{movieId}/{crewName}")
-    public ResponseEntity<Crew> getCrewByCompositeId(@PathVariable Long movieId, @PathVariable String crewName) {
-        Optional<Crew> crew = crewService.getCrewByCompositeId(movieId, crewName);
-        return crew.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/{id}")
+    public ResponseEntity<Crew> getById(@PathVariable Long id) {
+        return crewService.getCrewById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
      * POST /crew
-     * Creates a new crew member.
+     * Create new member.
      */
     @PostMapping
-    public Crew createCrew(@RequestBody CrewDTO crewDto) {
-        return crewService.createCrew(crewDto);
+    public ResponseEntity<Crew> createCrew(@RequestBody CrewDTO crewDto) {
+        return ResponseEntity.ok(crewService.createCrew(crewDto));
     }
 
     /**
-     * PUT /crew/{movieId}/{crewName}
-     * Updates an existing member's role.
+     * PUT /crew/{id}
+     * Update by unique ID.
      */
-    @PutMapping("/{movieId}/{crewName}")
-    public ResponseEntity<Crew> updateCrew(@PathVariable Long movieId, @PathVariable String crewName, @RequestBody CrewDTO updatedCrewDto) {
-        Crew result = crewService.updateCrew(movieId, crewName, updatedCrewDto);
-        if (result != null) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    @PutMapping("/{id}")
+    public ResponseEntity<Crew> updateCrew(@PathVariable Long id, @RequestBody CrewDTO dto) {
+        return crewService.updateCrew(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
-     * DELETE /crew/{movieId}/{crewName}
-     * Deletes a crew member.
+     * DELETE /crew/{id}
+     * Delete by unique ID.
      */
-    @DeleteMapping("/{movieId}/{crewName}")
-    public ResponseEntity<Void> deleteCrew(@PathVariable Long movieId, @PathVariable String crewName) {
-        boolean deleted = crewService.deleteCrew(movieId, crewName);
-        if (deleted) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCrew(@PathVariable Long id) {
+        return crewService.deleteCrew(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }

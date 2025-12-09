@@ -9,38 +9,26 @@ import java.util.List;
 /**
  * Repository interface for accessing {@link Country} data.
  * <p>
- * Extends {@link JpaRepository} to provide standard CRUD operations and custom query methods.
- * Includes methods supporting {@link Pageable} to handle the large dataset (693k entries) efficiently.
+ * Extends {@link JpaRepository} with Long as the ID type.
  * </p>
  */
 @Repository
-public interface CountryRepository extends JpaRepository<Country, CountryPrimaryKey> {
+public interface CountryRepository extends JpaRepository<Country, Long> {
 
     /**
      * Finds all countries associated with a specific film ID.
      *
-     * @param movieId The ID of the film (inside the composite PK).
+     * @param movieId The ID of the film (Integer).
      * @return A list of {@link Country} entities.
      */
-    List<Country> findByIdMovieId(Long movieId);
-
-    /**
-     * Finds all films associated with a specific country name.
-     *
-     * @param country The name of the country.
-     * @return A list of {@link Country} entities.
-     */
-    List<Country> findByIdCountry(String country);
+    List<Country> findByMovieId(Integer movieId);
 
     /**
      * Searches for countries by name (partial match, case-insensitive) with pagination.
-     * <p>
-     * Enables users to explore films by country (e.g., searching for "Italy" or "USA").
-     * </p>
      *
      * @param country  The search string.
      * @param pageable The pagination info.
-     * @return A {@link Page} of matching {@link Country} entities.
+     * @return A {@link Page} of matching entities.
      */
-    Page<Country> findByIdCountryContainingIgnoreCase(String country, Pageable pageable);
+    Page<Country> findByCountryContainingIgnoreCase(String country, Pageable pageable);
 }

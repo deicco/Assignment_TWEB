@@ -3,17 +3,14 @@ package it.unito.iumtweb.springboot.countries;
 /**
  * Data Transfer Object (DTO) for the Country entity.
  * <p>
- * Used to transfer country data between the client (Main Express Server) and this Spring Boot application.
- * This pattern decouples the internal database structure from the external API.
+ * Used to transfer country data between the client and the server.
  * </p>
  */
 public class CountriesDTO {
 
-    /** The ID of the film associated with the country. */
-    private Long movieId;
-
-    /** The name of the country. */
-    private String country;
+    private Long id;         // Unique ID (optional)
+    private Integer movieId; // ID of the movie (Integer)
+    private String country;  // Name of the country
 
     /**
      * Default no-argument constructor.
@@ -21,31 +18,22 @@ public class CountriesDTO {
     public CountriesDTO() {}
 
     /**
-     * Full constructor for creating a DTO instance.
-     *
-     * @param movieId The ID of the film.
-     * @param country The name of the country.
+     * Full constructor.
      */
-    public CountriesDTO(Long movieId, String country) {
+    public CountriesDTO(Long id, Integer movieId, String country) {
+        this.id = id;
         this.movieId = movieId;
         this.country = country;
     }
 
     // --- Getters and Setters ---
 
-    public Long getMovieId() {
-        return movieId;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setMovieId(Long movieId) {
-        this.movieId = movieId;
-    }
+    public Integer getMovieId() { return movieId; }
+    public void setMovieId(Integer movieId) { this.movieId = movieId; }
 
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
 }

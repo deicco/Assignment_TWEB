@@ -2,25 +2,29 @@ package it.unito.iumtweb.springboot.poster;
 
 /**
  * Data Transfer Object (DTO) for the Poster entity.
- * <p>
- * Used to transfer poster link data.
- * </p>
  */
 public class PosterDTO {
 
+    private Long id;
+    private Integer movieId;
     private String link;
 
     public PosterDTO() {}
 
-    public PosterDTO(String link) {
+    public PosterDTO(Long id, Integer movieId, String link) {
+        this.id = id;
+        this.movieId = movieId;
         this.link = link;
     }
 
-    public String getLink() {
-        return link;
-    }
+    // --- Getters and Setters ---
 
-    public void setLink(String link) {
-        this.link = link;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Integer getMovieId() { return movieId; }
+    public void setMovieId(Integer movieId) { this.movieId = movieId; }
+
+    public String getLink() { return link; }
+    public void setLink(String link) { this.link = link; }
 }

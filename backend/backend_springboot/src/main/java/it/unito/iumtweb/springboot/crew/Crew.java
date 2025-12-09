@@ -1,82 +1,69 @@
 package it.unito.iumtweb.springboot.crew;
 
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import java.io.Serializable;
 
 /**
  * JPA Entity representing the 'crew' table in the PostgreSQL database.
  * <p>
- * This class maps the static data regarding film crew members (directors, writers, etc.).
- * It uses a composite key defined in {@link CrewPrimaryKey}.
+ * Maps film crew members (directors, writers, etc.).
+ * Uses a Surrogate Key (auto-increment Long ID) for efficient management.
  * </p>
  */
 @Entity
 @Table(name = "crew")
-public class Crew {
+public class Crew implements Serializable {
 
     /**
-     * The composite primary key (Movie ID + Crew Name).
+     * Unique identifier for this record (Auto-increment).
      */
-    @EmbeddedId
-    private CrewPrimaryKey id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
 
     /**
-     * The job or role performed by the person (e.g., "Director", "Writer").
+     * Foreign Key: The ID of the movie.
+     * Mapped as Integer to match the Movies table definition.
      */
+    @Column(name = "movie_id")
+    private Integer movieId;
+
+    /**
+     * The name of the crew member.
+     */
+    @Column(name = "name")
+    private String name;
+
+    /**
+     * The job or role performed (e.g., "Director", "Writer").
+     */
+    @Column(name = "role")
     private String role;
 
-    /**
-     * Default constructor.
-     */
+    /** Default constructor. */
     public Crew() {}
 
     /**
-     * Full constructor.
-     * @param id The composite ID.
-     * @param role The role description.
+     * Constructor for creation.
      */
-    public Crew(CrewPrimaryKey id, String role) {
-        this.id = id;
+    public Crew(Integer movieId, String name, String role) {
+        this.movieId = movieId;
+        this.name = name;
         this.role = role;
     }
 
     // --- Getters and Setters ---
 
-    /**
-     * Retrieves the composite primary key.
-     * @return The {@link CrewPrimaryKey} instance.
-     */
-    public CrewPrimaryKey getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    /**
-     * Sets the composite primary key.
-     * @param id The new {@link CrewPrimaryKey}.
-     */
-    public void setId(CrewPrimaryKey id) {
-        this.id = id;
-    }
+    public Integer getMovieId() { return movieId; }
+    public void setMovieId(Integer movieId) { this.movieId = movieId; }
 
-    /**
-     * Retrieves the role of the crew member.
-     * @return The role description.
-     */
-    public String getRole() {
-        return role;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    /**
-     * Sets the role of the crew member.
-     * @param role The new role description.
-     */
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    // Helper to get name directly
-    public String getName() {
-        return id != null ? id.getCrewName() : null;
-    }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 }

@@ -1,48 +1,68 @@
 package it.unito.iumtweb.springboot.languages;
 
 import jakarta.persistence.*;
+import java.io.Serializable;
 
 /**
  * JPA Entity representing the 'languages' table.
  * <p>
- * This class maps the static data regarding languages spoken in films.
- * It uses a composite key defined in {@link LanguagesPrimaryKey}.
+ * Maps languages spoken in films.
+ * Uses a Surrogate Key (auto-increment Long ID) for efficient management.
  * </p>
  */
 @Entity
 @Table(name = "languages")
-public class Languages {
+public class Languages implements Serializable {
 
     /**
-     * The composite primary key (Movie ID + Language Name).
+     * Unique identifier for this record (Auto-increment).
      */
-    @EmbeddedId
-    private LanguagesPrimaryKey id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+
+    /**
+     * Foreign Key: The ID of the movie.
+     * Mapped as Integer to match the Movies table definition.
+     */
+    @Column(name = "movie_id")
+    private Integer movieId;
+
+    /**
+     * The name of the language (e.g., "English", "Italian").
+     */
+    @Column(name = "language")
+    private String language;
 
     /**
      * Optional descriptive field (e.g., "Original", "Dubbed").
      */
+    @Column(name = "type")
     private String type;
 
-    /**
-     * Default constructor.
-     */
+    /** Default constructor. */
     public Languages() {}
 
     /**
-     * Retrieves the composite primary key.
+     * Constructor for creation.
      */
-    public LanguagesPrimaryKey getId() { return id; }
+    public Languages(Integer movieId, String language, String type) {
+        this.movieId = movieId;
+        this.language = language;
+        this.type = type;
+    }
 
-    /**
-     * Sets the composite primary key.
-     */
-    public void setId(LanguagesPrimaryKey id) { this.id = id; }
+    // --- Getters and Setters ---
 
-    // --- Helper methods for direct access ---
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Long getMovieId() { return id != null ? id.getMovieId() : null; }
-    public String getLanguage() { return id != null ? id.getLanguage() : null; }
+    public Integer getMovieId() { return movieId; }
+    public void setMovieId(Integer movieId) { this.movieId = movieId; }
+
+    public String getLanguage() { return language; }
+    public void setLanguage(String language) { this.language = language; }
 
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }

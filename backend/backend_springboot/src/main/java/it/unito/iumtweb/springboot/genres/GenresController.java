@@ -10,14 +10,9 @@ import java.util.List;
 
 /**
  * REST Controller for managing Genre resources.
- * <p>
- * Exposes endpoints to query film genres.
- * Supports pagination and search to ensure scalability.
- * </p>
  */
 @RestController
 @RequestMapping("/genres")
-// Enables Cross-Origin requests from the Express Server
 @CrossOrigin(origins = "http://localhost:3000")
 public class GenresController {
 
@@ -26,12 +21,7 @@ public class GenresController {
 
     /**
      * GET /genres
-     * Retrieves all genre associations with pagination and optional filtering.
-     *
-     * @param page    Page number (default 0).
-     * @param size    Items per page (default 20).
-     * @param keyword Optional search keyword for genre name.
-     * @return A {@link Page} of {@link Genres}.
+     * List all genres with filters.
      */
     @GetMapping
     public ResponseEntity<Page<Genres>> getAllGenres(
@@ -49,39 +39,51 @@ public class GenresController {
 
     /**
      * GET /genres/movie/{id}
-     * Retrieves all genres for a specific movie.
-     *
-     * @param id The movie ID.
-     * @return List of {@link Genres}.
+     * Get genres for a movie (Integer ID).
      */
-    @GetMapping("/movie/{id}")
-    public List<Genres> getGenresByMovie(@PathVariable Long id) {
-        return genresService.getGenresByMovieId(id);
+    @GetMapping("/movie/{movieId}")
+    public List<Genres> getGenresByMovie(@PathVariable Integer movieId) {
+        return genresService.getGenresByMovieId(movieId);
+    }
+
+    /**
+     * GET /genres/{id}
+     * Get by unique ID.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<Genres> getById(@PathVariable Long id) {
+        return genresService.getGenreById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
      * POST /genres
-     * Creates a new genre association.
-     *
-     * @param dto The data to create.
-     * @return The created entity.
+     * Create new genre.
      */
     @PostMapping
-    public Genres createGenre(@RequestBody GenresDTO dto) {
-        return genresService.createGenre(dto);
+    public ResponseEntity<Genres> createGenre(@RequestBody GenresDTO dto) {
+        return ResponseEntity.ok(genresService.createGenre(dto));
     }
 
     /**
-     * DELETE /genres/{id}/{genre}
-     * Deletes a genre association.
-     *
-     * @param id    The movie ID.
-     * @param genre The genre name.
-     * @return 204 No Content or 404 Not Found.
+     * PUT /genres/{id}
+     * Update by unique ID.
      */
-    @DeleteMapping("/{id}/{genre}")
-    public ResponseEntity<Void> deleteGenre(@PathVariable Long id, @PathVariable String genre) {
-        return genresService.deleteGenre(id, genre) ?
+    @PutMapping("/{id}")
+    public ResponseEntity<Genres> updateGenre(@PathVariable Long id, @RequestBody GenresDTO dto) {
+        return genresService.updateGenre(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * DELETE /genres/{id}
+     * Delete by unique ID.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteGenre(@PathVariable Long id) {
+        return genresService.deleteGenre(id) ?
                 ResponseEntity.noContent().build() :
                 ResponseEntity.notFound().build();
     }

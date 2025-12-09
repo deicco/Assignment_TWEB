@@ -9,9 +9,6 @@ import java.util.Optional;
 
 /**
  * Service class encapsulating business logic for Poster management.
- * <p>
- * Handles retrieval and persistence of movie poster links.
- * </p>
  */
 @Service
 public class PostersService {
@@ -21,19 +18,20 @@ public class PostersService {
 
     /**
      * Retrieves all posters with pagination.
-     * <p>
-     * <b>Mandatory:</b> Prevents OutOfMemory errors on large dataset (940k rows).
-     * </p>
-     *
-     * @param pageable Pagination info.
-     * @return A {@link Page} of {@link Poster}.
      */
     public Page<Poster> getAllPosters(Pageable pageable) {
         return posterRepository.findAll(pageable);
     }
 
     /**
-     * Retrieves a poster by Movie ID.
+     * Retrieves a poster by Movie ID (Integer).
+     */
+    public Optional<Poster> getPosterByMovieId(Integer movieId) {
+        return posterRepository.findByMovieId(movieId);
+    }
+
+    /**
+     * Retrieves a poster by its unique ID (Long).
      */
     public Optional<Poster> getPosterById(Long id) {
         return posterRepository.findById(id);
@@ -41,32 +39,28 @@ public class PostersService {
 
     /**
      * Creates a new poster entry.
-     *
-     * @param movieId The ID of the film (used as PK).
-     * @param posterDto The DTO containing the link.
-     * @return The saved entity.
      */
-    public Poster createPoster(Long movieId, PosterDTO posterDto) {
-        Poster newPoster = new Poster();
-        newPoster.setId(movieId);
-        newPoster.setLink(posterDto.getLink());
+    public Poster createPoster(PosterDTO posterDto) {
+        Poster newPoster = new Poster(posterDto.getMovieId(), posterDto.getLink());
         return posterRepository.save(newPoster);
     }
 
     /**
-     * Updates an existing poster link.
+     * Updates an existing poster link by unique ID.
      */
-    public Poster updatePoster(Long id, PosterDTO updatedPosterDto) {
+    public Optional<Poster> updatePoster(Long id, PosterDTO updatedPosterDto) {
         return posterRepository.findById(id)
                 .map(existingPoster -> {
                     existingPoster.setLink(updatedPosterDto.getLink());
+                    if (updatedPosterDto.getMovieId() != null) {
+                        existingPoster.setMovieId(updatedPosterDto.getMovieId());
+                    }
                     return posterRepository.save(existingPoster);
-                })
-                .orElse(null);
+                });
     }
 
     /**
-     * Deletes a poster.
+     * Deletes a poster by unique ID.
      */
     public boolean deletePoster(Long id) {
         if (posterRepository.existsById(id)) {

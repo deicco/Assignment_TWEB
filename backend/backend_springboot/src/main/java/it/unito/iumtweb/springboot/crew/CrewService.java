@@ -10,9 +10,6 @@ import java.util.Optional;
 
 /**
  * Service class encapsulating business logic for Crew management.
- * <p>
- * Handles data retrieval, pagination, and persistence for crew members.
- * </p>
  */
 @Service
 public class CrewService {
@@ -22,12 +19,6 @@ public class CrewService {
 
     /**
      * Retrieves all crew entries with pagination.
-     * <p>
-     * <b>Mandatory:</b> Without pagination, fetching 4.7M records would crash the server.
-     * </p>
-     *
-     * @param pageable Pagination information.
-     * @return A {@link Page} of {@link Crew}.
      */
     public Page<Crew> getAllCrew(Pageable pageable) {
         return crewRepository.findAll(pageable);
@@ -35,15 +26,10 @@ public class CrewService {
 
     /**
      * Searches crew members by name or role.
-     *
-     * @param name     Optional name filter.
-     * @param role     Optional role filter.
-     * @param pageable Pagination info.
-     * @return A {@link Page} of matching results.
      */
     public Page<Crew> searchCrew(String name, String role, Pageable pageable) {
         if (name != null && !name.isEmpty()) {
-            return crewRepository.findByIdCrewNameContainingIgnoreCase(name, pageable);
+            return crewRepository.findByNameContainingIgnoreCase(name, pageable);
         } else if (role != null && !role.isEmpty()) {
             return crewRepository.findByRoleContainingIgnoreCase(role, pageable);
         }
@@ -51,49 +37,49 @@ public class CrewService {
     }
 
     /**
-     * Retrieves crew by Movie ID.
+     * Retrieves crew by Movie ID (Integer).
      */
-    public List<Crew> getCrewByMovieId(Long movieId) {
-        return crewRepository.findByIdMovieId(movieId);
+    public List<Crew> getCrewByMovieId(Integer movieId) {
+        return crewRepository.findByMovieId(movieId);
     }
 
     /**
-     * Retrieves a specific member by composite ID.
+     * Retrieves a specific member by unique ID.
      */
-    public Optional<Crew> getCrewByCompositeId(Long movieId, String crewName) {
-        CrewPrimaryKey pk = new CrewPrimaryKey(movieId, crewName);
-        return crewRepository.findById(pk);
+    public Optional<Crew> getCrewById(Long id) {
+        return crewRepository.findById(id);
     }
 
     /**
      * Creates a new crew member association.
      */
-    public Crew createCrew(CrewDTO crewDto) {
-        CrewPrimaryKey pk = new CrewPrimaryKey(crewDto.getMovieId(), crewDto.getCrewName());
-        Crew newCrew = new Crew(pk, crewDto.getRole());
+    public Crew createCrew(CrewDTO dto) {
+        Crew newCrew = new Crew(dto.getMovieId(), dto.getName(), dto.getRole());
         return crewRepository.save(newCrew);
     }
 
     /**
-     * Updates an existing crew member's role.
+     * Updates an existing crew member using unique ID.
      */
-    public Crew updateCrew(Long movieId, String crewName, CrewDTO updatedCrewDto) {
-        CrewPrimaryKey pk = new CrewPrimaryKey(movieId, crewName);
-        return crewRepository.findById(pk)
-                .map(existingCrew -> {
-                    existingCrew.setRole(updatedCrewDto.getRole());
-                    return crewRepository.save(existingCrew);
-                })
-                .orElse(null);
+    public Optional<Crew> updateCrew(Long id, CrewDTO dto) {
+        return crewRepository.findById(id)
+                .map(existing -> {
+                    existing.setName(dto.getName());
+                    existing.setRole(dto.getRole());
+
+                    if (dto.getMovieId() != null) {
+                        existing.setMovieId(dto.getMovieId());
+                    }
+                    return crewRepository.save(existing);
+                });
     }
 
     /**
-     * Deletes a crew member.
+     * Deletes a crew member by unique ID.
      */
-    public boolean deleteCrew(Long movieId, String crewName) {
-        CrewPrimaryKey pk = new CrewPrimaryKey(movieId, crewName);
-        if (crewRepository.existsById(pk)) {
-            crewRepository.deleteById(pk);
+    public boolean deleteCrew(Long id) {
+        if (crewRepository.existsById(id)) {
+            crewRepository.deleteById(id);
             return true;
         }
         return false;

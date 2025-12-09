@@ -11,14 +11,9 @@ import java.util.List;
 
 /**
  * REST Controller for managing Language resources.
- * <p>
- * Exposes endpoints to query film languages.
- * Supports pagination and search to ensure scalability.
- * </p>
  */
 @RestController
 @RequestMapping("/languages")
-// Enables Cross-Origin requests from the Express Server
 @CrossOrigin(origins = "http://localhost:3000")
 public class LanguagesController {
 
@@ -27,12 +22,7 @@ public class LanguagesController {
 
     /**
      * GET /languages
-     * Retrieves all language associations with pagination and optional filtering.
-     *
-     * @param page    Page number (default 0).
-     * @param size    Items per page (default 20).
-     * @param keyword Optional search keyword for language name.
-     * @return A {@link Page} of {@link Languages}.
+     * List all languages with filters.
      */
     @GetMapping
     public ResponseEntity<Page<Languages>> getAllLanguages(
@@ -49,58 +39,53 @@ public class LanguagesController {
     }
 
     /**
-     * GET /languages/{movieId}
-     * Retrieves the list of languages for a specific film.
-     *
-     * @param movieId The ID of the film.
-     * @return A List of {@link Languages}.
+     * GET /languages/movie/{movieId}
+     * Get languages for a movie (Integer ID).
      */
-    @GetMapping("/{movieId}")
-    public List<Languages> getLanguagesByMovieId(@PathVariable Long movieId) {
+    @GetMapping("/movie/{movieId}")
+    public List<Languages> getLanguagesByMovieId(@PathVariable Integer movieId) {
         return languagesService.getLanguagesByMovieId(movieId);
     }
 
     /**
+     * GET /languages/{id}
+     * Get by unique ID.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<Languages> getById(@PathVariable Long id) {
+        return languagesService.getLanguageById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
      * POST /languages
-     * Creates a new language association.
-     *
-     * @param languageDto The data to create.
-     * @return The created entity.
+     * Create new language.
      */
     @PostMapping
-    public Languages createLanguage(@RequestBody LanguagesDTO languageDto) {
-        return languagesService.createLanguage(languageDto);
+    public ResponseEntity<Languages> createLanguage(@RequestBody LanguagesDTO dto) {
+        return ResponseEntity.ok(languagesService.createLanguage(dto));
     }
 
     /**
-     * PUT /languages/{movieId}/{language}
-     * Updates an existing language association.
+     * PUT /languages/{id}
+     * Update by unique ID.
      */
-    @PutMapping("/{movieId}/{language}")
-    public ResponseEntity<Languages> updateLanguage(
-            @PathVariable Long movieId,
-            @PathVariable String language,
-            @RequestBody LanguagesDTO updatedLanguageDto) {
-
-        Languages result = languagesService.updateLanguage(movieId, language, updatedLanguageDto);
-
-        if (result != null) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    @PutMapping("/{id}")
+    public ResponseEntity<Languages> updateLanguage(@PathVariable Long id, @RequestBody LanguagesDTO dto) {
+        return languagesService.updateLanguage(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
-     * DELETE /languages/{movieId}/{language}
-     * Deletes a specific language association.
+     * DELETE /languages/{id}
+     * Delete by unique ID.
      */
-    @DeleteMapping("/{movieId}/{language}")
-    public ResponseEntity<Void> deleteLanguage(@PathVariable Long movieId, @PathVariable String language) {
-        boolean deleted = languagesService.deleteLanguage(movieId, language);
-        if (deleted) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteLanguage(@PathVariable Long id) {
+        return languagesService.deleteLanguage(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }

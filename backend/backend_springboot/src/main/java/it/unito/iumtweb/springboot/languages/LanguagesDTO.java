@@ -2,30 +2,30 @@ package it.unito.iumtweb.springboot.languages;
 
 /**
  * Data Transfer Object (DTO) for the Languages entity.
- * <p>
- * Used to transfer language data between the client and this server.
- * </p>
  */
 public class LanguagesDTO {
 
-    /** The ID of the film. Changed to Long for consistency. */
-    private Long movieId;
+    private Long id;         // Unique ID (optional)
+    private Integer movieId; // Movie ID (Integer)
+    private String language; // Language name
+    private String type;     // Type (optional)
 
-    /** The language name. */
-    private String language;
-
-    /** The type of language usage (optional). */
-    private String type;
-
-    /**
-     * Default constructor.
-     */
     public LanguagesDTO() {}
+
+    public LanguagesDTO(Long id, Integer movieId, String language, String type) {
+        this.id = id;
+        this.movieId = movieId;
+        this.language = language;
+        this.type = type;
+    }
 
     // --- Getters and Setters ---
 
-    public Long getMovieId() { return movieId; }
-    public void setMovieId(Long movieId) { this.movieId = movieId; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Integer getMovieId() { return movieId; }
+    public void setMovieId(Integer movieId) { this.movieId = movieId; }
 
     public String getLanguage() { return language; }
     public void setLanguage(String language) { this.language = language; }

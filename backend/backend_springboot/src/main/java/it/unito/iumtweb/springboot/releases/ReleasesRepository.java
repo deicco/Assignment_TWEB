@@ -10,25 +10,20 @@ import java.util.List;
 /**
  * Repository interface for accessing {@link Releases} data.
  * <p>
- * Extends {@link JpaRepository} to provide standard CRUD operations.
- * Includes pagination support to handle the massive dataset (13M entries).
+ * Extends {@link JpaRepository} with Long as the ID type.
  * </p>
  */
 @Repository
-public interface ReleasesRepository extends JpaRepository<Releases, ReleasesPrimaryKey> {
+public interface ReleasesRepository extends JpaRepository<Releases, Long> {
 
     /**
-     * Finds all releases for a specific movie.
-     * @param movieId The film ID.
-     * @return List of releases.
+     * Finds all releases for a specific movie ID.
+     * @param movieId The Integer ID of the film.
      */
-    List<Releases> findByIdMovieId(Long movieId);
+    List<Releases> findByMovieId(Integer movieId);
 
     /**
      * Finds releases by country with pagination.
-     * @param country The country name.
-     * @param pageable Pagination info.
-     * @return A {@link Page} of releases.
      */
-    Page<Releases> findByIdCountry(String country, Pageable pageable);
+    Page<Releases> findByCountry(String country, Pageable pageable);
 }

@@ -4,13 +4,11 @@ import java.util.Date;
 
 /**
  * Data Transfer Object (DTO) for the Releases entity.
- * <p>
- * Transfers release information between client and server.
- * </p>
  */
 public class ReleasesDTO {
 
-    private Long movieId; // Renamed from 'id' for clarity
+    private Long id;
+    private Integer movieId;
     private String country;
     private Date date;
     private String type;
@@ -18,10 +16,22 @@ public class ReleasesDTO {
 
     public ReleasesDTO() {}
 
+    public ReleasesDTO(Long id, Integer movieId, String country, Date date, String type, Float rating) {
+        this.id = id;
+        this.movieId = movieId;
+        this.country = country;
+        this.date = date;
+        this.type = type;
+        this.rating = rating;
+    }
+
     // --- Getters and Setters ---
 
-    public Long getMovieId() { return movieId; }
-    public void setMovieId(Long movieId) { this.movieId = movieId; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Integer getMovieId() { return movieId; }
+    public void setMovieId(Integer movieId) { this.movieId = movieId; }
 
     public String getCountry() { return country; }
     public void setCountry(String country) { this.country = country; }

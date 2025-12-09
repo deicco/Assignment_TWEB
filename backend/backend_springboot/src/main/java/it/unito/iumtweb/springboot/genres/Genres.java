@@ -1,56 +1,59 @@
 package it.unito.iumtweb.springboot.genres;
 
 import jakarta.persistence.*;
+import java.io.Serializable;
 
 /**
  * JPA Entity representing the 'genres' table in the PostgreSQL database.
  * <p>
- * This class maps the static data regarding film genres.
- * It uses a composite key defined in {@link GenresPrimaryKey}.
+ * Maps film genres (e.g., Horror, Comedy).
+ * Uses a Surrogate Key (auto-increment Long ID) for efficient management.
  * </p>
  */
 @Entity
 @Table(name = "genres")
-public class Genres {
+public class Genres implements Serializable {
 
     /**
-     * The composite primary key (Movie ID + Genre Name).
+     * Unique identifier for this record (Auto-increment).
      */
-    @EmbeddedId
-    private GenresPrimaryKey id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
 
     /**
-     * Default constructor.
+     * Foreign Key: The ID of the movie.
+     * Mapped as Integer to match the Movies table definition.
      */
+    @Column(name = "movie_id")
+    private Integer movieId;
+
+    /**
+     * The name of the genre (e.g., "Horror", "Comedy").
+     */
+    @Column(name = "genre")
+    private String genre;
+
+    /** Default constructor. */
     public Genres() {}
 
     /**
-     * Retrieves the composite primary key.
-     * @return The {@link GenresPrimaryKey} instance.
+     * Constructor for creation.
      */
-    public GenresPrimaryKey getId() { return id; }
-
-    /**
-     * Sets the composite primary key.
-     * @param id The new {@link GenresPrimaryKey}.
-     */
-    public void setId(GenresPrimaryKey id) { this.id = id; }
-
-    // --- Helper methods for direct access ---
-
-    /**
-     * Gets the movie ID directly from the key.
-     * @return The movie ID.
-     */
-    public Long getMovieId() {
-        return id != null ? id.getMovieId() : null;
+    public Genres(Integer movieId, String genre) {
+        this.movieId = movieId;
+        this.genre = genre;
     }
 
-    /**
-     * Gets the genre name directly from the key.
-     * @return The genre name.
-     */
-    public String getGenre() {
-        return id != null ? id.getGenre() : null;
-    }
+    // --- Getters and Setters ---
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Integer getMovieId() { return movieId; }
+    public void setMovieId(Integer movieId) { this.movieId = movieId; }
+
+    public String getGenre() { return genre; }
+    public void setGenre(String genre) { this.genre = genre; }
 }

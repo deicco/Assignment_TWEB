@@ -5,13 +5,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
  * Service class encapsulating business logic for Oscar management.
- * <p>
- * Handles data retrieval and filtering for awards analysis.
- * </p>
  */
 @Service
 public class OscarsService {
@@ -28,54 +26,78 @@ public class OscarsService {
 
     /**
      * Searches awards by film, person name, or winner status.
-     *
-     * @param film Film name filter.
-     * @param name Person name filter.
-     * @param onlyWinners If true, returns only winners.
-     * @param pageable Pagination info.
-     * @return A {@link Page} of results.
      */
     public Page<Oscars> searchOscars(String film, String name, Boolean onlyWinners, Pageable pageable) {
         if (Boolean.TRUE.equals(onlyWinners)) {
             return oscarsRepository.findByWinnerTrue(pageable);
         }
         if (film != null && !film.isEmpty()) {
-            return oscarsRepository.findByIdFilmContainingIgnoreCase(film, pageable);
+            return oscarsRepository.findByFilmContainingIgnoreCase(film, pageable);
         }
         if (name != null && !name.isEmpty()) {
-            return oscarsRepository.findByIdNameContainingIgnoreCase(name, pageable);
+            return oscarsRepository.findByNameContainingIgnoreCase(name, pageable);
         }
         return oscarsRepository.findAll(pageable);
     }
 
     /**
-     * Retrieves a specific entry by composite key.
+     * Retrieves awards for a specific movie (by ID).
      */
-    public Optional<Oscars> getOscarByCompositeKey(int year, String category, String film, String name) {
-        OscarsPrimaryKey pk = new OscarsPrimaryKey(year, category, film, name);
-        return oscarsRepository.findById(pk);
+    public List<Oscars> getOscarsByMovieId(Integer movieId) {
+        return oscarsRepository.findByMovieId(movieId);
+    }
+
+    /**
+     * Retrieves a specific entry by unique ID.
+     */
+    public Optional<Oscars> getOscarById(Long id) {
+        return oscarsRepository.findById(id);
     }
 
     /**
      * Creates a new oscar entry.
      */
     public Oscars createOscar(OscarsDTO dto) {
-        OscarsPrimaryKey pk = new OscarsPrimaryKey(dto.getYear_film(), dto.getCategory(), dto.getFilm(), dto.getName());
-        Oscars newOscar = new Oscars();
-        newOscar.setId(pk);
-        newOscar.setYear_ceremony(dto.getYear_ceremony());
-        newOscar.setCeremony(dto.getCeremony());
-        newOscar.setWinner(dto.getWinner());
+        Oscars newOscar = new Oscars(
+                dto.getMovieId(),
+                dto.getYearFilm(),
+                dto.getYearCeremony(),
+                dto.getCeremony(),
+                dto.getCategory(),
+                dto.getName(),
+                dto.getFilm(),
+                dto.getWinner()
+        );
         return oscarsRepository.save(newOscar);
     }
 
     /**
-     * Deletes an entry.
+     * Updates an existing entry by unique ID.
      */
-    public boolean deleteOscar(int year, String category, String film, String name) {
-        OscarsPrimaryKey pk = new OscarsPrimaryKey(year, category, film, name);
-        if (oscarsRepository.existsById(pk)) {
-            oscarsRepository.deleteById(pk);
+    public Optional<Oscars> updateOscar(Long id, OscarsDTO dto) {
+        return oscarsRepository.findById(id)
+                .map(existing -> {
+                    existing.setCategory(dto.getCategory());
+                    existing.setWinner(dto.getWinner());
+                    existing.setName(dto.getName());
+                    existing.setYearFilm(dto.getYearFilm());
+                    existing.setYearCeremony(dto.getYearCeremony());
+                    existing.setCeremony(dto.getCeremony());
+                    existing.setFilm(dto.getFilm());
+
+                    if (dto.getMovieId() != null) {
+                        existing.setMovieId(dto.getMovieId());
+                    }
+                    return oscarsRepository.save(existing);
+                });
+    }
+
+    /**
+     * Deletes an entry by unique ID.
+     */
+    public boolean deleteOscar(Long id) {
+        if (oscarsRepository.existsById(id)) {
+            oscarsRepository.deleteById(id);
             return true;
         }
         return false;

@@ -10,9 +10,6 @@ import java.util.Optional;
 
 /**
  * Service class encapsulating business logic for Release management.
- * <p>
- * Handles data retrieval and pagination for the largest dataset in the system.
- * </p>
  */
 @Service
 public class ReleasesService {
@@ -22,73 +19,69 @@ public class ReleasesService {
 
     /**
      * Retrieves all releases with pagination.
-     * <p>
-     * <b>Mandatory:</b> Without pagination, fetching 13M records causes an OutOfMemoryError.
-     * </p>
-     *
-     * @param pageable Pagination info.
-     * @return A {@link Page} of {@link Releases}.
      */
     public Page<Releases> getAllReleases(Pageable pageable) {
         return releasesRepository.findAll(pageable);
     }
 
     /**
-     * Retrieves releases by country with pagination.
+     * Retrieves releases by country.
      */
     public Page<Releases> getReleasesByCountry(String country, Pageable pageable) {
-        return releasesRepository.findByIdCountry(country, pageable);
+        return releasesRepository.findByCountry(country, pageable);
     }
 
     /**
-     * Retrieves releases for a specific movie.
+     * Retrieves releases for a specific movie (Integer ID).
      */
-    public List<Releases> getReleasesByMovieId(Long movieId) {
-        return releasesRepository.findByIdMovieId(movieId);
+    public List<Releases> getReleasesByMovieId(Integer movieId) {
+        return releasesRepository.findByMovieId(movieId);
     }
 
     /**
-     * Retrieves a specific release by composite key.
+     * Retrieves a specific release by unique ID.
      */
-    public Optional<Releases> getReleaseByCompositeKey(Long movieId, String country) {
-        ReleasesPrimaryKey pk = new ReleasesPrimaryKey(movieId, country);
-        return releasesRepository.findById(pk);
+    public Optional<Releases> getReleaseById(Long id) {
+        return releasesRepository.findById(id);
     }
 
     /**
      * Creates a new release entry.
      */
-    public Releases createRelease(ReleasesDTO releaseDto) {
-        ReleasesPrimaryKey pk = new ReleasesPrimaryKey(releaseDto.getMovieId(), releaseDto.getCountry());
-        Releases newRelease = new Releases();
-        newRelease.setId(pk);
-        newRelease.setDate(releaseDto.getDate());
-        newRelease.setType(releaseDto.getType());
-        newRelease.setRating(releaseDto.getRating());
+    public Releases createRelease(ReleasesDTO dto) {
+        Releases newRelease = new Releases(
+                dto.getMovieId(),
+                dto.getCountry(),
+                dto.getDate(),
+                dto.getType(),
+                dto.getRating()
+        );
         return releasesRepository.save(newRelease);
     }
 
     /**
-     * Updates an existing release entry.
+     * Updates an existing release entry by unique ID.
      */
-    public Optional<Releases> updateRelease(Long movieId, String country, ReleasesDTO updatedDto) {
-        ReleasesPrimaryKey pk = new ReleasesPrimaryKey(movieId, country);
-        return releasesRepository.findById(pk)
-                .map(existingRelease -> {
-                    existingRelease.setDate(updatedDto.getDate());
-                    existingRelease.setType(updatedDto.getType());
-                    existingRelease.setRating(updatedDto.getRating());
-                    return releasesRepository.save(existingRelease);
+    public Optional<Releases> updateRelease(Long id, ReleasesDTO dto) {
+        return releasesRepository.findById(id)
+                .map(existing -> {
+                    existing.setCountry(dto.getCountry());
+                    existing.setDate(dto.getDate());
+                    existing.setType(dto.getType());
+                    existing.setRating(dto.getRating());
+                    if (dto.getMovieId() != null) {
+                        existing.setMovieId(dto.getMovieId());
+                    }
+                    return releasesRepository.save(existing);
                 });
     }
 
     /**
-     * Deletes a release entry.
+     * Deletes a release entry by unique ID.
      */
-    public boolean deleteRelease(Long movieId, String country) {
-        ReleasesPrimaryKey pk = new ReleasesPrimaryKey(movieId, country);
-        if (releasesRepository.existsById(pk)) {
-            releasesRepository.deleteById(pk);
+    public boolean deleteRelease(Long id) {
+        if (releasesRepository.existsById(id)) {
+            releasesRepository.deleteById(id);
             return true;
         }
         return false;

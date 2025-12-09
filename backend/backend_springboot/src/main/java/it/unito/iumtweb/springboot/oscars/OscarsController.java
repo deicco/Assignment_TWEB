@@ -7,14 +7,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.List;
 
 /**
  * REST Controller for managing Oscar resources.
- * <p>
- * Exposes endpoints to query awards data.
- * Supports pagination and filtering (e.g., show only winners).
- * </p>
  */
 @RestController
 @RequestMapping("/oscars")
@@ -27,13 +23,6 @@ public class OscarsController {
     /**
      * GET /oscars
      * Retrieves awards with optional filters.
-     *
-     * @param film Optional film name search.
-     * @param name Optional nominee name search.
-     * @param onlyWinners If true, returns only winners.
-     * @param page Page number (default 0).
-     * @param size Items per page (default 20).
-     * @return A {@link Page} of {@link Oscars}.
      */
     @GetMapping
     public ResponseEntity<Page<Oscars>> getOscars(
@@ -48,15 +37,53 @@ public class OscarsController {
     }
 
     /**
+     * GET /oscars/movie/{movieId}
+     * Retrieves awards for a specific movie.
+     */
+    @GetMapping("/movie/{movieId}")
+    public List<Oscars> getOscarsByMovieId(@PathVariable Integer movieId) {
+        return oscarsService.getOscarsByMovieId(movieId);
+    }
+
+    /**
+     * GET /oscars/{id}
+     * Retrieves a specific entry by ID.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<Oscars> getById(@PathVariable Long id) {
+        return oscarsService.getOscarById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
      * POST /oscars
      * Creates a new entry.
      */
     @PostMapping
-    public Oscars createOscar(@RequestBody OscarsDTO oscarDto) {
-        return oscarsService.createOscar(oscarDto);
+    public ResponseEntity<Oscars> createOscar(@RequestBody OscarsDTO oscarDto) {
+        return ResponseEntity.ok(oscarsService.createOscar(oscarDto));
     }
 
-    // Nota: Ho semplificato rimuovendo il GET/DELETE by ID complesso dall'URL
-    // perché con 4 parametri di chiave diventa scomodo da gestire via REST standard.
-    // La ricerca e creazione coprono i casi d'uso principali.
+    /**
+     * PUT /oscars/{id}
+     * Updates an existing entry.
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<Oscars> updateOscar(@PathVariable Long id, @RequestBody OscarsDTO oscarDto) {
+        return oscarsService.updateOscar(id, oscarDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * DELETE /oscars/{id}
+     * Deletes an entry.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOscar(@PathVariable Long id) {
+        return oscarsService.deleteOscar(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
+    }
 }

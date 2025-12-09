@@ -3,16 +3,15 @@ package it.unito.iumtweb.springboot.movies;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.time.LocalDateTime;
 
 /**
  * Repository interface for accessing {@link Movies} data.
  * <p>
  * Extends {@link JpaRepository} to provide standard CRUD operations.
  * Includes custom query methods for filtering data by name, rating, date, and duration.
- * Supports {@link Pageable} to efficiently handle the large dataset (approx. 940k records).
+ * Supports {@link Pageable} to efficiently handle the large dataset.
  * </p>
  */
 @Repository
@@ -36,13 +35,17 @@ public interface MoviesRepository extends JpaRepository<Movies, Long> {
     Page<Movies> findByRatingBetween(float min, float max, Pageable pageable);
 
     /**
-     * Finds movies released within a specific date range.
-     * @param start Start date.
-     * @param end End date.
+     * Finds movies released within a specific YEAR range.
+     * <p>
+     * Changed from LocalDateTime to Integer to match the Entity definition.
+     * </p>
+     * @param startYear Start year.
+     * @param endYear End year.
      * @param pageable Pagination info.
      * @return A page of matching movies.
      */
-    Page<Movies> findByDateBetween(LocalDateTime start, LocalDateTime end, Pageable pageable);
+    @Query("SELECT m FROM Movies m WHERE m.date BETWEEN :startYear AND :endYear")
+    Page<Movies> findByDateBetween(Integer startYear, Integer endYear, Pageable pageable);
 
     /**
      * Finds movies with a duration greater than the specified minutes.

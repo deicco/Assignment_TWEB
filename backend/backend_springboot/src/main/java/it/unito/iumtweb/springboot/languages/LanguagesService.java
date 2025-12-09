@@ -4,16 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
  * Service class encapsulating business logic for Language management.
- * <p>
- * Handles data retrieval, pagination, and persistence for language-movie associations.
- * </p>
  */
 @Service
 public class LanguagesService {
@@ -22,92 +18,62 @@ public class LanguagesService {
     private LanguagesRepository languagesRepository;
 
     /**
-     * Retrieves all language entries with pagination.
-     *
-     * @param pageable Pagination information.
-     * @return A {@link Page} of {@link Languages}.
+     * Retrieves all languages with pagination.
      */
     public Page<Languages> getAllLanguages(Pageable pageable) {
         return languagesRepository.findAll(pageable);
     }
 
     /**
-     * Searches for languages by name with pagination.
-     *
-     * @param keyword  The language name keyword.
-     * @param pageable Pagination information.
-     * @return A {@link Page} of matching entities.
+     * Searches for languages by name.
      */
     public Page<Languages> searchLanguages(String keyword, Pageable pageable) {
-        return languagesRepository.findByIdLanguageContainingIgnoreCase(keyword, pageable);
+        return languagesRepository.findByLanguageContainingIgnoreCase(keyword, pageable);
     }
 
     /**
-     * Retrieves all languages for a specific movie.
-     * @param movieId The movie ID.
-     * @return List of languages.
+     * Retrieves all languages for a specific movie (Integer ID).
      */
-    public List<Languages> getLanguagesByMovieId(Long movieId) {
-        return languagesRepository.findByIdMovieId(movieId);
+    public List<Languages> getLanguagesByMovieId(Integer movieId) {
+        return languagesRepository.findByMovieId(movieId);
     }
 
     /**
-     * Retrieves a specific language entry using the composite key.
-     * @param movieId  The movie ID.
-     * @param language The language name.
-     * @return An Optional with the entity.
+     * Retrieves a specific language by unique ID.
      */
-    public Optional<Languages> getLanguageByCompositeKey(Long movieId, String language) {
-        LanguagesPrimaryKey pk = new LanguagesPrimaryKey(movieId, language);
-        return languagesRepository.findById(pk);
+    public Optional<Languages> getLanguageById(Long id) {
+        return languagesRepository.findById(id);
     }
 
     /**
      * Creates a new language association.
-     * @param dto The data transfer object.
-     * @return The saved entity.
      */
     public Languages createLanguage(LanguagesDTO dto) {
-        LanguagesPrimaryKey pk = new LanguagesPrimaryKey(dto.getMovieId(), dto.getLanguage());
-        Languages newLanguage = new Languages();
-        newLanguage.setId(pk);
-        newLanguage.setType(dto.getType());
-        return languagesRepository.save(newLanguage);
+        Languages language = new Languages(dto.getMovieId(), dto.getLanguage(), dto.getType());
+        return languagesRepository.save(language);
     }
 
     /**
-     * Updates an existing language association.
+     * Updates an existing language using unique ID.
      */
-    public Languages updateLanguage(Long movieId, String language, LanguagesDTO updatedLanguageDto) {
-        LanguagesPrimaryKey pk = new LanguagesPrimaryKey(movieId, language);
-        return languagesRepository.findById(pk)
-                .map(existingLanguage -> {
-                    existingLanguage.setType(updatedLanguageDto.getType());
-                    return languagesRepository.save(existingLanguage);
-                })
-                .orElse(null);
+    public Optional<Languages> updateLanguage(Long id, LanguagesDTO dto) {
+        return languagesRepository.findById(id)
+                .map(existing -> {
+                    existing.setLanguage(dto.getLanguage());
+                    existing.setType(dto.getType());
+                    if (dto.getMovieId() != null) {
+                        existing.setMovieId(dto.getMovieId());
+                    }
+                    return languagesRepository.save(existing);
+                });
     }
 
     /**
-     * Deletes a specific language association.
+     * Deletes a language by unique ID.
      */
-    public boolean deleteLanguage(Long movieId, String language) {
-        LanguagesPrimaryKey pk = new LanguagesPrimaryKey(movieId, language);
-        if (languagesRepository.existsById(pk)) {
-            languagesRepository.deleteById(pk);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Deletes all languages for a specific movie.
-     */
-    @Transactional
-    public boolean deleteAllLanguagesByMovieId(Long movieId) {
-        List<Languages> list = languagesRepository.findByIdMovieId(movieId);
-        if (!list.isEmpty()) {
-            languagesRepository.deleteByIdMovieId(movieId);
+    public boolean deleteLanguage(Long id) {
+        if (languagesRepository.existsById(id)) {
+            languagesRepository.deleteById(id);
             return true;
         }
         return false;

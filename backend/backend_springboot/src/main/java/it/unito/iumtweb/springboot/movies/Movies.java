@@ -1,35 +1,37 @@
 package it.unito.iumtweb.springboot.movies;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import jakarta.persistence.*;
+import java.io.Serializable;
 
 /**
  * JPA Entity representing the 'movies' table.
  * <p>
  * This is the central entity of the system. It contains the main metadata for films.
- * Unlike other entities, this uses a standard numerical Primary Key ({@code id})
- * which is referenced by foreign keys in Actors, Crew, etc.
+ * It uses a standard numerical Primary Key (id) which is referenced by foreign keys in Actors, Crew, etc.
  * </p>
  */
 @Entity
 @Table(name = "movies")
-public class Movies {
+public class Movies implements Serializable {
 
-        // 1. Definiamo un generatore di sequenza con il nome standard di Postgres
-        @SequenceGenerator(name = "movies_seq", sequenceName = "movies_id_seq", allocationSize = 1)
+    // 1. Definiamo un generatore di sequenza con il nome standard di Postgres
+    @SequenceGenerator(name = "movies_seq", sequenceName = "movies_id_seq", allocationSize = 1)
 
-        @Id
-        // 2. Usiamo la strategia SEQUENCE e puntiamo al generatore definito sopra
-        @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "movies_seq")
-        private Long id;
+    // 2. Usiamo la strategia SEQUENCE.
+    // IMPORTANTE: Usiamo Long invece di Integer per compatibilità con JpaRepository<Movies, Long>
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "movies_seq")
+    private Long id;
 
     /** The title of the movie. */
     private String name;
 
-    /** The release date. */
+    /**
+     * The release year.
+     * Mapped as Integer because the CSV/DB contains only the year (e.g., 2024).
+     */
     @Column(name = "date")
-    private LocalDate date;
+    private Integer date;
 
     /** The promotional slogan of the movie. */
     private String tagline;
@@ -42,7 +44,7 @@ public class Movies {
     private String description;
 
     /** The duration of the movie in minutes. */
-    private int minute;
+    private Integer minute;
 
     /** The average rating score. */
     private Float rating;
@@ -55,7 +57,7 @@ public class Movies {
     /**
      * Full constructor.
      */
-    public Movies(Long id, String name, LocalDate date, String tagline, String description, int minute, float rating) {
+    public Movies(Long id, String name, Integer date, String tagline, String description, Integer minute, Float rating) {
         this.id = id;
         this.name = name;
         this.date = date;
@@ -67,24 +69,24 @@ public class Movies {
 
     // --- Getters and Setters ---
 
-    public Long getId() {return id;}
+    public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getName() {return name;}
+    public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public LocalDate getDate() {return date;}
-    public void setDate(LocalDate date) { this.date = date; }
+    public Integer getDate() { return date; }
+    public void setDate(Integer date) { this.date = date; }
 
-    public String getTagline() {return tagline;}
+    public String getTagline() { return tagline; }
     public void setTagline(String tagline) { this.tagline = tagline; }
 
-    public String getDescription() {return description;}
+    public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public int getMinute() {return minute;}
-    public void setMinute(int minute) { this.minute = minute; }
+    public Integer getMinute() { return minute; }
+    public void setMinute(Integer minute) { this.minute = minute; }
 
-    public float getRating() {return rating;}
-    public void setRating(float rating) { this.rating = rating; }
+    public Float getRating() { return rating; }
+    public void setRating(Float rating) { this.rating = rating; }
 }

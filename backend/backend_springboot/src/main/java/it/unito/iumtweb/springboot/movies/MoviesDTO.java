@@ -1,7 +1,5 @@
 package it.unito.iumtweb.springboot.movies;
 
-import java.time.LocalDate;
-
 /**
  * Data Transfer Object (DTO) for the Movies entity.
  * <p>
@@ -12,17 +10,17 @@ import java.time.LocalDate;
 public class MoviesDTO {
 
     private String name;
-    private LocalDate date;
+    private Integer date; // Represents the Year
     private String tagline;
     private String description;
-    private int minute;
+    private Integer minute;
     private Float rating;
 
     /** Default constructor. */
     public MoviesDTO() {}
 
     /** Full constructor. */
-    public MoviesDTO(String name, LocalDate date, String tagline, String description, int minute, Float rating) {
+    public MoviesDTO(String name, Integer date, String tagline, String description, Integer minute, Float rating) {
         this.name = name;
         this.date = date;
         this.tagline = tagline;
@@ -36,8 +34,8 @@ public class MoviesDTO {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public LocalDate getDate() { return date; }
-    public void setDate(LocalDate date) { this.date = date; }
+    public Integer getDate() { return date; }
+    public void setDate(Integer date) { this.date = date; }
 
     public String getTagline() { return tagline; }
     public void setTagline(String tagline) { this.tagline = tagline; }
@@ -45,8 +43,8 @@ public class MoviesDTO {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public int getMinute() { return minute; }
-    public void setMinute(int minute) { this.minute = minute; }
+    public Integer getMinute() { return minute; }
+    public void setMinute(Integer minute) { this.minute = minute; }
 
     public Float getRating() { return rating; }
     public void setRating(Float rating) { this.rating = rating; }

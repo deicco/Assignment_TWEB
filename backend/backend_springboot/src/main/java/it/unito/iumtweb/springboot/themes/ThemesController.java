@@ -8,14 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * REST Controller for managing Theme resources.
- * <p>
- * Exposes endpoints to query film themes.
- * Supports pagination and search.
- * </p>
  */
 @RestController
 @RequestMapping("/themes")
@@ -28,11 +23,6 @@ public class ThemesController {
     /**
      * GET /themes
      * Retrieves all themes with pagination and optional search.
-     *
-     * @param page    Page number (default 0).
-     * @param size    Items per page (default 20).
-     * @param keyword Optional search keyword.
-     * @return A {@link Page} of {@link Themes}.
      */
     @GetMapping
     public ResponseEntity<Page<Themes>> getAllThemes(
@@ -53,22 +43,19 @@ public class ThemesController {
      * Retrieves all themes for a specific movie.
      */
     @GetMapping("/movie/{movieId}")
-    public List<Themes> getThemesByMovieId(@PathVariable Long movieId) {
+    public List<Themes> getThemesByMovieId(@PathVariable Integer movieId) {
         return themesService.getThemesByMovieId(movieId);
     }
 
     /**
-     * GET /themes/{movieId}/{theme}
-     * Retrieves a specific association.
+     * GET /themes/{id}
+     * Retrieves a specific theme by unique ID.
      */
-    @GetMapping("/{movieId}/{theme}")
-    public ResponseEntity<Themes> getThemeByCompositeKey(
-            @PathVariable Long movieId,
-            @PathVariable String theme) {
-
-        Optional<Themes> result = themesService.getThemeByCompositeKey(movieId, theme);
-        return result.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/{id}")
+    public ResponseEntity<Themes> getById(@PathVariable Long id) {
+        return themesService.getThemeById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -81,18 +68,24 @@ public class ThemesController {
     }
 
     /**
-     * DELETE /themes/{movieId}/{theme}
-     * Deletes a theme.
+     * PUT /themes/{id}
+     * Updates an existing theme by unique ID.
      */
-    @DeleteMapping("/{movieId}/{theme}")
-    public ResponseEntity<Void> deleteTheme(
-            @PathVariable Long movieId,
-            @PathVariable String theme) {
+    @PutMapping("/{id}")
+    public ResponseEntity<Themes> updateTheme(@PathVariable Long id, @RequestBody ThemesDTO dto) {
+        return themesService.updateTheme(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 
-        boolean deleted = themesService.deleteTheme(movieId, theme);
-        if (deleted) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+    /**
+     * DELETE /themes/{id}
+     * Deletes a theme by unique ID.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTheme(@PathVariable Long id) {
+        return themesService.deleteTheme(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }

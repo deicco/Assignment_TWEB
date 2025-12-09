@@ -8,14 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * REST Controller for managing Studio resources.
- * <p>
- * Exposes endpoints to query film studios.
- * Supports pagination and search.
- * </p>
  */
 @RestController
 @RequestMapping("/studios")
@@ -28,11 +23,6 @@ public class StudiosController {
     /**
      * GET /studios
      * Retrieves all studios with pagination and optional search.
-     *
-     * @param page    Page number (default 0).
-     * @param size    Items per page (default 20).
-     * @param keyword Optional search keyword.
-     * @return A {@link Page} of {@link Studios}.
      */
     @GetMapping
     public ResponseEntity<Page<Studios>> getAllStudios(
@@ -53,19 +43,19 @@ public class StudiosController {
      * Retrieves all studios for a specific movie.
      */
     @GetMapping("/movie/{movieId}")
-    public List<Studios> getStudiosByMovieId(@PathVariable Long movieId) {
+    public List<Studios> getStudiosByMovieId(@PathVariable Integer movieId) {
         return studiosService.getStudiosByMovieId(movieId);
     }
 
     /**
-     * GET /studios/{movieId}/{studioName}
-     * Retrieves a specific association.
+     * GET /studios/{id}
+     * Retrieves a specific entry by unique ID.
      */
-    @GetMapping("/{movieId}/{studioName}")
-    public ResponseEntity<Studios> getStudioByCompositeKey(@PathVariable Long movieId, @PathVariable String studioName) {
-        Optional<Studios> studio = studiosService.getStudioByCompositeKey(movieId, studioName);
-        return studio.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/{id}")
+    public ResponseEntity<Studios> getById(@PathVariable Long id) {
+        return studiosService.getStudioById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -78,27 +68,24 @@ public class StudiosController {
     }
 
     /**
-     * DELETE /studios/{movieId}/{studioName}
-     * Deletes an association.
+     * PUT /studios/{id}
+     * Updates an existing entry by unique ID.
      */
-    @DeleteMapping("/{movieId}/{studioName}")
-    public ResponseEntity<Void> deleteStudio(@PathVariable Long movieId, @PathVariable String studioName) {
-        boolean deleted = studiosService.deleteStudio(movieId, studioName);
-        if (deleted) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+    @PutMapping("/{id}")
+    public ResponseEntity<Studios> updateStudio(@PathVariable Long id, @RequestBody StudiosDTO updatedDto) {
+        return studiosService.updateStudio(id, updatedDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // PUT endpoint kept for API consistency, though functionally limited for this entity
-    @PutMapping("/{movieId}/{studioName}")
-    public ResponseEntity<Studios> updateStudio(
-            @PathVariable Long movieId,
-            @PathVariable String studioName,
-            @RequestBody StudiosDTO updatedStudioDto
-    ) {
-        Optional<Studios> result = studiosService.updateStudio(movieId, studioName, updatedStudioDto);
-        return result.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    /**
+     * DELETE /studios/{id}
+     * Deletes an association by unique ID.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteStudio(@PathVariable Long id) {
+        return studiosService.deleteStudio(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }

@@ -2,16 +2,21 @@ package it.unito.iumtweb.springboot.poster;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.util.Optional;
 
 /**
  * Repository interface for accessing {@link Poster} data.
  * <p>
- * Extends {@link JpaRepository} to provide standard CRUD operations.
- * Allows pagination to safely browse the 940,000+ entries.
+ * Extends {@link JpaRepository} with Long as the ID type.
  * </p>
  */
 @Repository
 public interface PosterRepository extends JpaRepository<Poster, Long> {
-    // Standard JpaRepository methods (findAll, findById) are sufficient.
-    // Pagination is supported by default in JpaRepository methods.
+
+    /**
+     * Finds the poster associated with a specific film ID.
+     * @param movieId The Integer ID of the film.
+     * @return An Optional containing the Poster if found.
+     */
+    Optional<Poster> findByMovieId(Integer movieId);
 }

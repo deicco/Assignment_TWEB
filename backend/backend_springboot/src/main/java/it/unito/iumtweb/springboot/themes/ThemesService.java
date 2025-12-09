@@ -10,9 +10,6 @@ import java.util.Optional;
 
 /**
  * Service class encapsulating business logic for Theme management.
- * <p>
- * Handles data retrieval, pagination, and persistence.
- * </p>
  */
 @Service
 public class ThemesService {
@@ -22,53 +19,60 @@ public class ThemesService {
 
     /**
      * Retrieves all themes with pagination.
-     * <p>
-     * <b>Mandatory:</b> Prevents OutOfMemory errors.
-     * </p>
      */
     public Page<Themes> getAllThemes(Pageable pageable) {
         return themesRepository.findAll(pageable);
     }
 
     /**
-     * Searches for themes by name with pagination.
+     * Searches for themes by name.
      */
     public Page<Themes> searchThemes(String keyword, Pageable pageable) {
-        return themesRepository.findByIdThemeContainingIgnoreCase(keyword, pageable);
+        return themesRepository.findByThemeContainingIgnoreCase(keyword, pageable);
     }
 
     /**
-     * Retrieves themes by movie ID.
+     * Retrieves themes by movie ID (Integer).
      */
-    public List<Themes> getThemesByMovieId(Long movieId) {
-        return themesRepository.findByIdMovieId(movieId);
+    public List<Themes> getThemesByMovieId(Integer movieId) {
+        return themesRepository.findByMovieId(movieId);
     }
 
     /**
-     * Retrieves a specific theme by composite key.
+     * Retrieves a specific theme by unique ID.
      */
-    public Optional<Themes> getThemeByCompositeKey(Long movieId, String theme) {
-        ThemesPrimaryKey pk = new ThemesPrimaryKey(movieId, theme);
-        return themesRepository.findById(pk);
+    public Optional<Themes> getThemeById(Long id) {
+        return themesRepository.findById(id);
     }
 
     /**
      * Creates a new theme association.
      */
     public Themes createTheme(ThemesDTO themeDto) {
-        ThemesPrimaryKey pk = new ThemesPrimaryKey(themeDto.getMovieId(), themeDto.getTheme());
-        Themes newTheme = new Themes();
-        newTheme.setId(pk);
+        Themes newTheme = new Themes(themeDto.getMovieId(), themeDto.getTheme());
         return themesRepository.save(newTheme);
     }
 
     /**
-     * Deletes a theme association.
+     * Updates an existing theme by unique ID.
      */
-    public boolean deleteTheme(Long movieId, String theme) {
-        ThemesPrimaryKey pk = new ThemesPrimaryKey(movieId, theme);
-        if (themesRepository.existsById(pk)) {
-            themesRepository.deleteById(pk);
+    public Optional<Themes> updateTheme(Long id, ThemesDTO dto) {
+        return themesRepository.findById(id)
+                .map(existing -> {
+                    existing.setTheme(dto.getTheme());
+                    if (dto.getMovieId() != null) {
+                        existing.setMovieId(dto.getMovieId());
+                    }
+                    return themesRepository.save(existing);
+                });
+    }
+
+    /**
+     * Deletes a theme association by unique ID.
+     */
+    public boolean deleteTheme(Long id) {
+        if (themesRepository.existsById(id)) {
+            themesRepository.deleteById(id);
             return true;
         }
         return false;

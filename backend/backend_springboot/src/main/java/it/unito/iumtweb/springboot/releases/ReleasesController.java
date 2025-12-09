@@ -8,14 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * REST Controller for managing Release resources.
- * <p>
- * Exposes endpoints to query release dates and ratings.
- * Supports pagination to handle the large data volume.
- * </p>
  */
 @RestController
 @RequestMapping("/releases")
@@ -27,12 +22,7 @@ public class ReleasesController {
 
     /**
      * GET /releases
-     * Retrieves all releases with pagination.
-     *
-     * @param page Page number (default 0).
-     * @param size Items per page (default 20).
-     * @param country Optional country filter.
-     * @return A {@link Page} of {@link Releases}.
+     * Retrieves releases with optional country filter.
      */
     @GetMapping
     public ResponseEntity<Page<Releases>> getAllReleases(
@@ -49,25 +39,23 @@ public class ReleasesController {
     }
 
     /**
-     * GET /releases/movie/{id}
+     * GET /releases/movie/{movieId}
      * Retrieves all releases for a specific movie.
      */
-    @GetMapping("/movie/{id}")
-    public List<Releases> getReleasesByMovieId(@PathVariable Long id) {
-        return releasesService.getReleasesByMovieId(id);
+    @GetMapping("/movie/{movieId}")
+    public List<Releases> getReleasesByMovieId(@PathVariable Integer movieId) {
+        return releasesService.getReleasesByMovieId(movieId);
     }
 
     /**
-     * GET /releases/{movieId}/{country}
-     * Retrieves a specific release.
+     * GET /releases/{id}
+     * Retrieves a specific release by unique ID.
      */
-    @GetMapping("/{movieId}/{country}")
-    public ResponseEntity<Releases> getReleaseByCompositeKey(
-            @PathVariable Long movieId,
-            @PathVariable String country) {
-        Optional<Releases> release = releasesService.getReleaseByCompositeKey(movieId, country);
-        return release.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/{id}")
+    public ResponseEntity<Releases> getById(@PathVariable Long id) {
+        return releasesService.getReleaseById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -80,28 +68,23 @@ public class ReleasesController {
     }
 
     /**
-     * PUT /releases/{movieId}/{country}
-     * Updates an existing release.
+     * PUT /releases/{id}
+     * Updates an existing release by unique ID.
      */
-    @PutMapping("/{movieId}/{country}")
-    public ResponseEntity<Releases> updateRelease(
-            @PathVariable Long movieId,
-            @PathVariable String country,
-            @RequestBody ReleasesDTO updatedDto) {
-        return releasesService.updateRelease(movieId, country, updatedDto)
+    @PutMapping("/{id}")
+    public ResponseEntity<Releases> updateRelease(@PathVariable Long id, @RequestBody ReleasesDTO updatedDto) {
+        return releasesService.updateRelease(id, updatedDto)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
-     * DELETE /releases/{movieId}/{country}
+     * DELETE /releases/{id}
      * Deletes a release.
      */
-    @DeleteMapping("/{movieId}/{country}")
-    public ResponseEntity<Void> deleteRelease(
-            @PathVariable Long movieId,
-            @PathVariable String country) {
-        return releasesService.deleteRelease(movieId, country)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteRelease(@PathVariable Long id) {
+        return releasesService.deleteRelease(id)
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.notFound().build();
     }

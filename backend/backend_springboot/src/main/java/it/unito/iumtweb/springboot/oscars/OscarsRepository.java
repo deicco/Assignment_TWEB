@@ -5,29 +5,34 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Repository interface for accessing {@link Oscars} data.
  * <p>
- * Extends {@link JpaRepository} to provide standard CRUD operations.
- * Includes specialized queries for analyzing winners.
+ * Extends {@link JpaRepository} with Long as the ID type.
  * </p>
  */
 @Repository
-public interface OscarsRepository extends JpaRepository<Oscars, OscarsPrimaryKey> {
+public interface OscarsRepository extends JpaRepository<Oscars, Long> {
 
     /**
-     * Finds all awards/nominations for a specific film (partial match).
+     * Finds all awards/nominations for a specific film ID.
      */
-    Page<Oscars> findByIdFilmContainingIgnoreCase(String film, Pageable pageable);
+    List<Oscars> findByMovieId(Integer movieId);
 
     /**
-     * Finds all awards/nominations for a specific person (partial match).
+     * Finds awards by film name (partial match).
      */
-    Page<Oscars> findByIdNameContainingIgnoreCase(String name, Pageable pageable);
+    Page<Oscars> findByFilmContainingIgnoreCase(String film, Pageable pageable);
+
+    /**
+     * Finds awards by nominee name (partial match).
+     */
+    Page<Oscars> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
     /**
      * Finds only the winners.
-     * Useful for creating "Hall of Fame" lists.
      */
     Page<Oscars> findByWinnerTrue(Pageable pageable);
 

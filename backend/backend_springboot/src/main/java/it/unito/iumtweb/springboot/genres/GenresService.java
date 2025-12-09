@@ -6,12 +6,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service class encapsulating business logic for Genre management.
- * <p>
- * Handles data retrieval, pagination, and persistence for genre-movie associations.
- * </p>
  */
 @Service
 public class GenresService {
@@ -21,57 +19,60 @@ public class GenresService {
 
     /**
      * Retrieves all genre entries with pagination.
-     *
-     * @param pageable Pagination information.
-     * @return A {@link Page} of {@link Genres}.
      */
     public Page<Genres> getAllGenres(Pageable pageable) {
         return genresRepository.findAll(pageable);
     }
 
     /**
-     * Searches for genres by name with pagination.
-     *
-     * @param keyword  The genre name keyword.
-     * @param pageable Pagination information.
-     * @return A {@link Page} of matching entities.
+     * Searches for genres by name.
      */
     public Page<Genres> searchGenres(String keyword, Pageable pageable) {
-        return genresRepository.findByIdGenreContainingIgnoreCase(keyword, pageable);
+        return genresRepository.findByGenreContainingIgnoreCase(keyword, pageable);
     }
 
     /**
-     * Retrieves genres for a specific movie.
-     * @param movieId The movie ID.
-     * @return List of genres.
+     * Retrieves genres for a specific movie (Integer ID).
      */
-    public List<Genres> getGenresByMovieId(Long movieId) {
-        return genresRepository.findByIdMovieId(movieId);
+    public List<Genres> getGenresByMovieId(Integer movieId) {
+        return genresRepository.findByMovieId(movieId);
+    }
+
+    /**
+     * Retrieves a specific genre by unique ID.
+     */
+    public Optional<Genres> getGenreById(Long id) {
+        return genresRepository.findById(id);
     }
 
     /**
      * Creates a new genre association.
-     * @param dto The data transfer object.
-     * @return The saved entity.
      */
     public Genres createGenre(GenresDTO dto) {
-        // Updated to use movieId for consistency
-        GenresPrimaryKey pk = new GenresPrimaryKey(dto.getMovieId(), dto.getGenre());
-        Genres genre = new Genres();
-        genre.setId(pk);
+        Genres genre = new Genres(dto.getMovieId(), dto.getGenre());
         return genresRepository.save(genre);
     }
 
     /**
-     * Deletes a genre association.
-     * @param movieId The movie ID.
-     * @param genre The genre name.
-     * @return True if deleted, false if not found.
+     * Updates an existing genre using unique ID.
      */
-    public boolean deleteGenre(Long movieId, String genre) {
-        GenresPrimaryKey pk = new GenresPrimaryKey(movieId, genre);
-        if (genresRepository.existsById(pk)) {
-            genresRepository.deleteById(pk);
+    public Optional<Genres> updateGenre(Long id, GenresDTO dto) {
+        return genresRepository.findById(id)
+                .map(existing -> {
+                    existing.setGenre(dto.getGenre());
+                    if (dto.getMovieId() != null) {
+                        existing.setMovieId(dto.getMovieId());
+                    }
+                    return genresRepository.save(existing);
+                });
+    }
+
+    /**
+     * Deletes a genre association by unique ID.
+     */
+    public boolean deleteGenre(Long id) {
+        if (genresRepository.existsById(id)) {
+            genresRepository.deleteById(id);
             return true;
         }
         return false;

@@ -10,45 +10,25 @@ import java.util.List;
 /**
  * Repository interface for accessing {@link Crew} data.
  * <p>
- * Extends {@link JpaRepository} to provide standard CRUD operations.
- * Includes methods supporting {@link Pageable} to handle the massive dataset (4.7M entries) efficiently.
+ * Extends {@link JpaRepository} with Long as the ID type.
  * </p>
  */
 @Repository
-public interface CrewRepository extends JpaRepository<Crew, CrewPrimaryKey> {
+public interface CrewRepository extends JpaRepository<Crew, Long> {
 
     /**
      * Finds all crew members for a specific movie.
-     *
-     * @param movieId The ID of the film.
-     * @return A list of {@link Crew} members.
+     * @param movieId The Integer ID of the film.
      */
-    List<Crew> findByIdMovieId(Long movieId);
+    List<Crew> findByMovieId(Integer movieId);
 
     /**
-     * Finds all movies associated with a specific crew member name.
-     *
-     * @param crewName The name of the person.
-     * @return A list of {@link Crew} entries.
+     * Searches for crew members by name (partial match).
      */
-    List<Crew> findByIdCrewName(String crewName);
+    Page<Crew> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
     /**
-     * Searches for crew members by name (partial match) with pagination.
-     *
-     * @param crewName The search keyword.
-     * @param pageable Pagination info.
-     * @return A {@link Page} of matching crew members.
-     */
-    Page<Crew> findByIdCrewNameContainingIgnoreCase(String crewName, Pageable pageable);
-
-    /**
-     * Searches for crew members by role (e.g., "Director") with pagination.
-     * Useful for journalists analyzing specific job categories.
-     *
-     * @param role     The role keyword.
-     * @param pageable Pagination info.
-     * @return A {@link Page} of matching entries.
+     * Searches for crew members by role (e.g., "Director").
      */
     Page<Crew> findByRoleContainingIgnoreCase(String role, Pageable pageable);
 }

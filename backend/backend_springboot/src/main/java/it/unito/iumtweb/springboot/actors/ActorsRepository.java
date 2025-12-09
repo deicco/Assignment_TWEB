@@ -3,45 +3,35 @@ package it.unito.iumtweb.springboot.actors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 
 /**
  * Repository interface for accessing {@link Actors} data.
  * <p>
- * Extends {@link JpaRepository} to provide standard CRUD operations and custom query methods
- * for the PostgreSQL database.
- * Includes methods supporting {@link Pageable} to handle the large dataset (5.7M entries) efficiently.
+ * Extends {@link JpaRepository} with Long as the ID type.
+ * Provides custom queries for filtering by Movie ID (Integer) and Name.
  * </p>
  */
 @Repository
-public interface ActorsRepository extends JpaRepository<Actors, ActorsPrimaryKey> {
+public interface ActorsRepository extends JpaRepository<Actors, Long> {
 
     /**
      * Finds all actors associated with a specific film ID.
      *
-     * @param movieId The ID of the film.
-     * @return A list of {@link Actors} entities belonging to the specified film.
+     * @param movieId The ID of the film (Integer).
+     * @return A list of actors in that movie.
      */
-    // Note: Usually casting is small enough to return a List, but could be paged if needed.
-    java.util.List<Actors> findByIdId(Long movieId);
-
-    /**
-     * Finds all appearances of a specific actor by exact name.
-     *
-     * @param name The name of the actor (part of the composite key).
-     * @return A list of {@link Actors} entities matching the given name.
-     */
-    java.util.List<Actors> findByIdName(String name);
+    @Query("SELECT a FROM Actors a WHERE a.movieId = :movieId")
+    List<Actors> findByMovieId(Integer movieId);
 
     /**
      * Performs a search for actors whose name contains the specified string (case-insensitive).
-     * <p>
-     * This method is essential for the "Querying and Exploring" requirement.
-     * </p>
      *
-     * @param name     The substring to search for in the actor's name.
-     * @param pageable The pagination information.
-     * @return A {@link Page} of actors matching the criteria.
+     * @param name     The substring to search for.
+     * @param pageable Pagination info.
+     * @return A Page of matching actors.
      */
-    Page<Actors> findByIdNameContainingIgnoreCase(String name, Pageable pageable);
+    Page<Actors> findByNameContainingIgnoreCase(String name, Pageable pageable);
 }

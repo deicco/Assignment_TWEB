@@ -7,17 +7,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-
 /**
  * REST Controller for managing Poster resources.
- * <p>
- * Exposes endpoints to retrieve and modify movie poster links.
- * </p>
  */
 @RestController
 @RequestMapping("/posters")
-// Enables Cross-Origin requests from the Express Server
 @CrossOrigin(origins = "http://localhost:3000")
 public class PosterController {
 
@@ -27,10 +21,6 @@ public class PosterController {
     /**
      * GET /posters
      * Retrieves a paginated list of all posters.
-     *
-     * @param page Page number (default 0).
-     * @param size Items per page (default 20).
-     * @return A {@link Page} of {@link Poster}.
      */
     @GetMapping
     public Page<Poster> getAllPosters(
@@ -41,63 +31,55 @@ public class PosterController {
     }
 
     /**
-     * GET /posters/{id}
+     * GET /posters/movie/{movieId}
      * Retrieves the poster for a specific Movie ID.
-     *
-     * @param id The Movie ID.
-     * @return 200 OK with Poster or 404 Not Found.
      */
-    @GetMapping("/{id}")
-    public ResponseEntity<Poster> getPosterById(@PathVariable Long id) {
-        Optional<Poster> poster = postersService.getPosterById(id);
-        return poster.map(ResponseEntity::ok)
+    @GetMapping("/movie/{movieId}")
+    public ResponseEntity<Poster> getPosterByMovieId(@PathVariable Integer movieId) {
+        return postersService.getPosterByMovieId(movieId)
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
-     * POST /posters/{id}
-     * Creates a new poster for a specific Movie ID.
-     *
-     * @param id The Movie ID.
-     * @param posterDto The poster data.
-     * @return The created Poster.
+     * GET /posters/{id}
+     * Retrieves the poster by unique ID.
      */
-    @PostMapping("/{id}")
-    public Poster createPoster(@PathVariable Long id, @RequestBody PosterDTO posterDto) {
-        return postersService.createPoster(id, posterDto);
+    @GetMapping("/{id}")
+    public ResponseEntity<Poster> getById(@PathVariable Long id) {
+        return postersService.getPosterById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * POST /posters
+     * Creates a new poster.
+     */
+    @PostMapping
+    public Poster createPoster(@RequestBody PosterDTO posterDto) {
+        return postersService.createPoster(posterDto);
     }
 
     /**
      * PUT /posters/{id}
-     * Updates an existing poster link.
-     *
-     * @param id The Movie ID.
-     * @param updatedPosterDto The new data.
-     * @return 200 OK or 404 Not Found.
+     * Updates an existing poster link by unique ID.
      */
     @PutMapping("/{id}")
     public ResponseEntity<Poster> updatePoster(@PathVariable Long id, @RequestBody PosterDTO updatedPosterDto) {
-        Poster result = postersService.updatePoster(id, updatedPosterDto);
-        if (result != null) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return postersService.updatePoster(id, updatedPosterDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
      * DELETE /posters/{id}
-     * Deletes a poster.
-     *
-     * @param id The Movie ID.
-     * @return 204 No Content or 404 Not Found.
+     * Deletes a poster by unique ID.
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePoster(@PathVariable Long id) {
-        boolean deleted = postersService.deletePoster(id);
-        if (deleted) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+        return postersService.deletePoster(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }

@@ -1,23 +1,39 @@
 package it.unito.iumtweb.springboot.countries;
 
 import jakarta.persistence.*;
+import java.io.Serializable;
 
 /**
  * JPA Entity representing the 'countries' table in the PostgreSQL database.
  * <p>
- * This class maps the static data regarding the production countries of films.
- * It uses a composite key defined in {@link CountryPrimaryKey}.
+ * Updated to use a Surrogate Key (auto-increment Long ID) instead of a composite key.
+ * Maps the production countries of films.
  * </p>
  */
 @Entity
 @Table(name = "countries")
-public class Country {
+public class Country implements Serializable {
 
     /**
-     * The composite primary key (Movie ID + Country Name).
+     * Unique identifier for this record (Auto-increment).
      */
-    @EmbeddedId
-    private CountryPrimaryKey id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+
+    /**
+     * Foreign Key: The ID of the movie.
+     * Mapped as Integer to match the Movies table definition.
+     */
+    @Column(name = "movie_id")
+    private Integer movieId;
+
+    /**
+     * The name of the country.
+     */
+    @Column(name = "country")
+    private String country;
 
     /**
      * Default constructor.
@@ -25,19 +41,21 @@ public class Country {
     public Country() {}
 
     /**
-     * Retrieves the composite primary key.
-     * @return The {@link CountryPrimaryKey} instance.
+     * Constructor for creation (without ID).
      */
-    public CountryPrimaryKey getId() { return id; }
-
-    /**
-     * Sets the composite primary key.
-     * @param id The new {@link CountryPrimaryKey}.
-     */
-    public void setId(CountryPrimaryKey id) { this.id = id; }
-
-    // Helper method to get Country Name directly
-    public String getCountryName() {
-        return id != null ? id.getCountry() : null;
+    public Country(Integer movieId, String country) {
+        this.movieId = movieId;
+        this.country = country;
     }
+
+    // --- Getters and Setters ---
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Integer getMovieId() { return movieId; }
+    public void setMovieId(Integer movieId) { this.movieId = movieId; }
+
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
 }

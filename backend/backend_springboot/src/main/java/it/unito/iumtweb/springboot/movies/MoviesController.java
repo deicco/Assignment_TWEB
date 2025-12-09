@@ -7,8 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-
 /**
  * REST Controller for managing Movie resources.
  * <p>
@@ -32,9 +30,9 @@ public class MoviesController {
      * @param name Name filter (partial match).
      * @param minRating Minimum rating filter.
      * @param maxRating Maximum rating filter.
-     * @param startDate Start date filter.
-     * @param endDate End date filter.
-     * @param minMinute Minimum duration filter (e.g., movies longer than 120 mins).
+     * @param startYear Start year filter (Integer).
+     * @param endYear End year filter (Integer).
+     * @param minMinute Minimum duration filter.
      * @param page Page number (default 0).
      * @param size Items per page (default 20).
      * @return A {@link Page} of {@link Movies}.
@@ -44,14 +42,14 @@ public class MoviesController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Float minRating,
             @RequestParam(required = false) Float maxRating,
-            @RequestParam(required = false) LocalDateTime startDate,
-            @RequestParam(required = false) LocalDateTime endDate,
+            @RequestParam(required = false) Integer startYear, // Changed from LocalDateTime
+            @RequestParam(required = false) Integer endYear,   // Changed from LocalDateTime
             @RequestParam(required = false) Integer minMinute,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return service.getMovies(name, minRating, maxRating, startDate, endDate, minMinute, pageable);
+        return service.getMovies(name, minRating, maxRating, startYear, endYear, minMinute, pageable);
     }
 
     /**

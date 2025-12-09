@@ -1,87 +1,70 @@
 package it.unito.iumtweb.springboot.actors;
 
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import java.io.Serializable;
 
 /**
- * JPA Entity representing the 'actors' table in the PostgreSQL database.
+ * Entity class representing the 'actors' table in the database.
  * <p>
- * This class maps the static data regarding actors and their roles in specific films.
- * It uses a composite key defined in {@link ActorsPrimaryKey}.
+ * Uses a standard auto-incrementing Primary Key (id) for easier management.
+ * Links to the Movies table via 'movie_id' (Integer), matching the Movies entity definition.
  * </p>
  */
 @Entity
 @Table(name = "actors")
-public class Actors {
+public class Actors implements Serializable {
 
     /**
-     * The composite primary key (Movie ID + Actor Name).
+     * Unique identifier for this actor record (Auto-increment).
+     * This is the Surrogate Key used for updates and deletions.
      */
-    @EmbeddedId
-    private ActorsPrimaryKey id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
 
     /**
-     * The character or role played by the actor in the specified film.
+     * Foreign Key: The ID of the movie this actor belongs to.
+     * Mapped as Integer to match the Movies table definition.
      */
+    @Column(name = "movie_id")
+    private Integer movieId;
+
+    /**
+     * The name of the actor.
+     */
+    @Column(name = "name")
+    private String name;
+
+    /**
+     * The role played by the actor.
+     */
+    @Column(name = "role")
     private String role;
 
-    /**
-     * Default constructor.
-     */
+    /** Default constructor for JPA. */
     public Actors() {}
 
-    // --- Getters and Setters for the ID ---
-
     /**
-     * Retrieves the composite primary key.
-     * @return The {@link ActorsPrimaryKey} instance.
+     * Constructor for creation (without ID).
      */
-    public ActorsPrimaryKey getId() {
-        return id;
-    }
-
-    /**
-     * Sets the composite primary key.
-     * @param id The new {@link ActorsPrimaryKey}.
-     */
-    public void setId(ActorsPrimaryKey id) {
-        this.id = id;
-    }
-
-    // --- Getters and Setters for the Role ---
-
-    /**
-     * Retrieves the role of the actor.
-     * @return The role description.
-     */
-    public String getRole() {
-        return role;
-    }
-
-    /**
-     * Sets the role of the actor.
-     * @param role The new role description.
-     */
-    public void setRole(String role) {
+    public Actors(Integer movieId, String name, String role) {
+        this.movieId = movieId;
+        this.name = name;
         this.role = role;
     }
 
-    // --- Helper Methods (Optional) ---
+    // --- Getters and Setters ---
 
-    /**
-     * Utility method to retrieve the actor's name directly from the embedded ID.
-     * @return The actor's name or {@code null} if the ID is not set.
-     */
-    public String getName() {
-        return id != null ? id.getName() : null;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    /**
-     * Utility method to retrieve the movie ID directly from the embedded ID.
-     * @return The movie ID or {@code null} if the ID is not set.
-     */
-    public Long getMovieId() {
-        return id != null ? id.getId() : null;
-    }
+    public Integer getMovieId() { return movieId; }
+    public void setMovieId(Integer movieId) { this.movieId = movieId; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 }

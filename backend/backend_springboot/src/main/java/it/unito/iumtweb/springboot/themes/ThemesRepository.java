@@ -10,27 +10,20 @@ import java.util.List;
 /**
  * Repository interface for accessing {@link Themes} data.
  * <p>
- * Extends {@link JpaRepository} to provide standard CRUD operations.
- * Includes methods supporting {@link Pageable} to handle large datasets.
+ * Extends {@link JpaRepository} with Long as the ID type.
  * </p>
  */
 @Repository
-public interface ThemesRepository extends JpaRepository<Themes, ThemesPrimaryKey> {
+public interface ThemesRepository extends JpaRepository<Themes, Long> {
 
     /**
-     * Finds all themes for a specific movie.
+     * Finds all themes for a specific movie ID.
+     * @param movieId The Integer ID of the film.
      */
-    List<Themes> findByIdMovieId(Long movieId);
+    List<Themes> findByMovieId(Integer movieId);
 
     /**
-     * Searches for themes by name (partial match, case-insensitive) with pagination.
-     * <p>
-     * Useful for exploring movies by theme (e.g., searching for "Revenge").
-     * </p>
-     *
-     * @param theme    The search keyword.
-     * @param pageable Pagination info.
-     * @return A {@link Page} of matching entities.
+     * Searches for themes by name (partial match, case-insensitive).
      */
-    Page<Themes> findByIdThemeContainingIgnoreCase(String theme, Pageable pageable);
+    Page<Themes> findByThemeContainingIgnoreCase(String theme, Pageable pageable);
 }

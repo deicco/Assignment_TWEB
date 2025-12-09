@@ -4,9 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.List;
 
 /**
  * Service class encapsulating business logic for Movie management.
@@ -26,7 +24,7 @@ public class MoviesService {
      * Filters are applied hierarchically:
      * 1. Name search
      * 2. Rating range
-     * 3. Date range
+     * 3. Year range (Integer)
      * 4. Duration (minute) filter
      * If no filters are provided, returns all movies.
      * </p>
@@ -34,8 +32,8 @@ public class MoviesService {
      * @param name Name keyword.
      * @param minRating Minimum rating.
      * @param maxRating Maximum rating.
-     * @param startDate Start date.
-     * @param endDate End date.
+     * @param startYear Start year (Integer).
+     * @param endYear End year (Integer).
      * @param minMinute Minimum duration.
      * @param pageable Pagination info.
      * @return A {@link Page} of {@link Movies}.
@@ -44,8 +42,8 @@ public class MoviesService {
             String name,
             Float minRating,
             Float maxRating,
-            LocalDateTime startDate,
-            LocalDateTime endDate,
+            Integer startYear, // Changed from LocalDateTime
+            Integer endYear,   // Changed from LocalDateTime
             Integer minMinute,
             Pageable pageable
     ) {
@@ -55,8 +53,8 @@ public class MoviesService {
         if (minRating != null && maxRating != null) {
             return repo.findByRatingBetween(minRating, maxRating, pageable);
         }
-        if (startDate != null && endDate != null) {
-            return repo.findByDateBetween(startDate, endDate, pageable);
+        if (startYear != null && endYear != null) {
+            return repo.findByDateBetween(startYear, endYear, pageable);
         }
         if (minMinute != null) {
             return repo.findByMinuteGreaterThan(minMinute, pageable);

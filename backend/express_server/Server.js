@@ -32,20 +32,37 @@ mongoose.connect('mongodb://localhost:27017/mydatabase')
 app.get('/reviews/movie/:title', async (req, res) => {
     try {
         const title = req.params.title;
-        // Limite di default per la paginazione / quantità di dati richiesti
         const limit = parseInt(req.query.limit) || 20;
 
-        // Ricerca per titolo esatto, case insensitive (sfrutta l'indice creato in Review.js)
-        const reviews = await Review.find({
+        console.log(`🔍 [ReviewServer] Ricerca richiesta per: '${title}'`);
+
+        // 1. Logica di ricerca con case-insensitive
+        let query = {
             movie_title: { $regex: new RegExp(`^${title}$`, 'i') }
-        }).limit(limit);
+        };
+
+        // Eseguiamo la query
+        let reviews = await Review.find(query).limit(limit);
+
+        console.log(`   👉 Risultati trovati (Match Esatto): ${reviews.length}`);
+
+        // 2. FALLBACK: Se non trova nulla, proviamo una ricerca "parziale" (senza ^ e $)
+        // Questo aiuta se ci sono spazi extra nel database o punteggiatura diversa
+        if (reviews.length === 0) {
+            console.log(`   ⚠️ Nessun risultato esatto. Tento ricerca parziale...`);
+            query = {
+                movie_title: { $regex: new RegExp(`${title}`, 'i') }
+            };
+            reviews = await Review.find(query).limit(limit);
+            console.log(`   👉 Risultati trovati (Match Parziale): ${reviews.length}`);
+        }
 
         res.json(reviews);
     } catch (err) {
+        console.error("❌ Errore server recensioni:", err);
         res.status(500).json({ message: 'Error retrieving reviews: ' + err.message });
     }
 });
-
 app.listen(PORT, () => {
     console.log(`🚀 Reviews Server attivo su http://localhost:${PORT}`);
 });

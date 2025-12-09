@@ -1,4 +1,4 @@
-// app.js - Versione Finale e Completa
+// app.js - Versione FINALE (Fix Doppia Query String)
 
 const express = require('express');
 const cors = require('cors');
@@ -10,17 +10,17 @@ const app = express();
 const PORT = 3000;
 
 // URL dei Backend
-const JAVA_URL = 'http://localhost:8082'; // Server Spring Boot
-const MONGO_URL = 'http://localhost:3001'; // Server Reviews (Express/In-Memory)
+const JAVA_URL = 'http://localhost:8082'; // Server Spring Boot (Static Data)
+const MONGO_URL = 'http://localhost:3001'; // Server Reviews (Dynamic Data)
 
 app.use(cors());
-app.use(express.json()); // Per leggere il JSON nei metodi POST/PUT
+app.use(express.json());
 
 // --- Inizializzazione Socket.io ---
-const server = http.createServer(app); // Il server HTTP ora gestisce Express E Socket.io
+const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "*", // Permette chiamate da qualsiasi origine (per testing frontend)
+        origin: "*",
         methods: ["GET", "POST"]
     }
 });
@@ -28,12 +28,6 @@ const io = new Server(server, {
 // ----------------------------------------------------
 // A. ENDPOINT: Dati Dinamici (Recensioni/Reviews)
 // ----------------------------------------------------
-
-/**
- * GET /reviews/movie/:title
- * Endpoint specifico che chiama il server Node.js/Reviews (3001).
- * DEVE ESSERE DEFINITO PRIMA DEL CATCH-ALL.
- */
 app.get('/reviews/movie/:title', async (req, res) => {
     const { title } = req.params;
     const limit = req.query.limit || 20;
@@ -42,9 +36,7 @@ app.get('/reviews/movie/:title', async (req, res) => {
     try {
         console.log(`[GATEWAY] Chiamata a Reviews Server: ${fullUrl}`);
         const response = await axios.get(fullUrl);
-
         res.status(response.status).json(response.data);
-
     } catch (error) {
         if (error.response) {
             return res.status(error.response.status).json(error.response.data);
@@ -58,36 +50,40 @@ app.get('/reviews/movie/:title', async (req, res) => {
 // B. ENDPOINT: Dati Statici (Gateway verso Spring Boot/Java)
 // ----------------------------------------------------
 
-/**
- * app.all('*')
- * Endpoint CATCH-ALL: Cattura TUTTO il traffico rimanente (/movies, /actors, /releases, ecc.)
- * e lo inoltra al server Java (8082).
- * Nota: Questo è l'ultimo endpoint REST definito.
- */
-app.use(async (req, res) => {
-    // req.url cattura l'intero percorso (es. /movies/1?page=0)
-    const javaPath = req.url;
+app.use('/api', async (req, res) => {
+
+    // Usiamo req.path invece di req.url.
+    // req.url  = "/movies?page=0&size=20&name=Barbie" (Include già la query string)
+    // req.path = "/movies" (Solo il percorso pulito)
+
+    const javaPath = req.path;
     const fullUrl = `${JAVA_URL}${javaPath}`;
 
-    // Safety check: Esclude il traffico di Socket.io se per caso sfugge
-    if (javaPath.startsWith('/socket.io')) {
-        return;
+    // Pulizia Parametri (Trim)
+    const javaQuery = { ...req.query };
+    if (javaQuery.name && typeof javaQuery.name === 'string') {
+        javaQuery.name = javaQuery.name.trim();
+        if (javaQuery.name === "") delete javaQuery.name;
     }
 
-    console.log(`[GATEWAY] Inoltro richiesta a Java: ${fullUrl} [${req.method}]`);
+    console.log(`[GATEWAY] Inoltro richiesta a Java: ${fullUrl} con params:`, javaQuery);
 
     try {
-        // Inoltra la richiesta, mantenendo il metodo originale (GET, POST, PUT, DELETE)
         const response = await axios({
             method: req.method,
             url: fullUrl,
-            data: req.body // Inoltra il body per POST/PUT
+            params: javaQuery, // Axios aggiungerà ?page=0&size=20&name=Barbie CORRETTAMENTE una volta sola
+            data: req.body
         });
+
+        // Header anti-cache
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
 
         res.status(response.status).json(response.data);
 
     } catch (error) {
-        // Gestione degli errori dal server Java
         if (error.response) {
             return res.status(error.response.status).json(error.response.data);
         }
@@ -95,22 +91,18 @@ app.use(async (req, res) => {
     }
 });
 
-
 // ----------------------------------------------------
 // C. LOGICA CHAT (SOCKET.IO)
 // ----------------------------------------------------
-
 io.on('connection', (socket) => {
     console.log(`Utente Socket.io connesso: ${socket.id}`);
 
-    // Permette all'utente di entrare in una stanza (es. film/attore)
     socket.on('joinRoom', (roomName) => {
         socket.join(roomName);
         console.log(`Utente ${socket.id} entrato nella stanza: ${roomName}`);
         socket.to(roomName).emit('message', { user: 'System', text: `Un nuovo utente si è unito alla discussione su ${roomName}.` });
     });
 
-    // Gestione dell'invio del messaggio
     socket.on('sendMessage', ({ roomName, message, userId }) => {
         io.to(roomName).emit('message', { user: userId, text: message, timestamp: new Date().toLocaleTimeString() });
     });
@@ -120,11 +112,9 @@ io.on('connection', (socket) => {
     });
 });
 
-
 // ----------------------------------------------------
 // D. AVVIO DEL SERVER
 // ----------------------------------------------------
-
 server.listen(PORT, () => {
     console.log(`✨ Main Server Gateway e Chat attivi su http://localhost:${PORT}`);
 });

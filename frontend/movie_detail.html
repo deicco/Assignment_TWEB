@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Movie Details | IUM-TWEB</title>
+    <link rel="stylesheet" href="static/style.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+
+<header>
+    <a href="index.html">← Back to List</a>
+    <h1 id="movie-title-header">Loading Movie...</h1>
+</header>
+
+<main id="main-content">
+    <p>Retrieving movie data, please wait...</p>
+</main>
+
+<section id="chat-section">
+    <h2>💬 Thematic Chat</h2>
+    <div id="chat-box" style="height: 250px; border: 1px solid #ccc; padding: 10px; overflow-y: scroll; background-color: #f9f9f9;">
+        Connecting to chat...
+    </div>
+    <div style="margin-top: 10px;">
+        <input type="text" id="chat-input" placeholder="Write a message..." style="width: 70%;">
+        <button onclick="sendChatMessage()" style="width: 25%;">Send</button>
+    </div>
+</section>
+
+<script id="detail-template" type="text/x-handlebars-template">
+    <section class="movie-info" style="overflow: hidden;">
+        {{#if posters}}
+            <img src="{{posters.0.link}}" alt="Movie Poster"
+                 style="max-width: 280px; float: right; margin-left: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        {{/if}}
+
+        <h2>{{movie.name}}</h2>
+        <p>
+            <strong>Year:</strong> {{getYear movie.date}} |
+            <strong>Duration:</strong> {{movie.minute}} min |
+            <strong>Rating:</strong> {{formatRating movie.rating}} / 5
+        </p>
+        <p><strong>Tagline:</strong> <em>"{{movie.tagline}}"</em></p>
+
+        <h3>Description</h3>
+        <p>{{movie.description}}</p>
+    </section>
+
+    <section class="related-data">
+        <h3>🌍 Available Languages</h3>
+        {{#if languages}}
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                {{#each languages}}
+                    <div style="background: #f0f4f8; border: 1px solid #d1d9e0; padding: 5px 12px; border-radius: 20px; font-size: 0.9em;">
+                        <strong>{{language}}</strong>
+                        {{#if type}} <span style="color: #666; font-size: 0.8em;">({{type}})</span> {{/if}}
+                    </div>
+                {{/each}}
+            </div>
+        {{else}}
+            <p>No language information available for this movie.</p>
+        {{/if}}
+    </section>
+
+    <section class="related-data">
+        <h3>👥 Main Cast</h3>
+        {{#if cast}}
+            <ul class="cast-list">
+                {{#each cast}}
+                    <li><strong>{{name}}</strong> as <span>{{role}}</span></li>
+                {{/each}}
+            </ul>
+        {{else}}
+            <p>No cast data found for this movie.</p>
+        {{/if}}
+    </section>
+
+    <section class="related-data">
+        <h3>⭐️ Critical Reviews</h3>
+        {{#if reviews}}
+            <div class="reviews-container">
+                {{#each reviews}}
+                    <div class="review-card" style="border-bottom: 1px solid #eee; padding: 15px 0;">
+                        <p><strong>Score: {{review_score}}</strong> - {{critic_name}} ({{publisher_name}})</p>
+                        <p style="font-style: italic;">"{{review_content}}"</p>
+                    </div>
+                {{/each}}
+            </div>
+        {{else}}
+            <p>No reviews found in the database.</p>
+        {{/if}}
+    </section>
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.7/dist/handlebars.min.js"></script>
+<script src="client.js"></script>
+
+<script>
+    // ---------------------------------------------------------
+    // 1. CONFIGURATION & HELPERS
+    // ---------------------------------------------------------
+
+    /**
+     * Registers a Handlebars helper to format the release year.
+     * @param {number} y - The year value.
+     * @return {number|string} The year or 'N/A' if invalid.
+     */
+    Handlebars.registerHelper('getYear', y => (y && y > 1850) ? y : 'N/A');
+
+    /**
+     * Registers a Handlebars helper to format the movie rating.
+     * @param {number} r - The rating score.
+     * @return {number|string} The rating or 'N/A' if invalid.
+     */
+    Handlebars.registerHelper('formatRating', r => (r && r > 0) ? r : 'N/A');
+
+    /**
+     * Compiles the Handlebars template for rendering movie details.
+     */
+    const templateSource = document.getElementById('detail-template').innerHTML;
+    const template = Handlebars.compile(templateSource);
+
+    // ---------------------------------------------------------
+    // 2. GLOBAL VARIABLES & SOCKET CONNECTION
+    // ---------------------------------------------------------
+
+    /**
+     * Initializes the Socket.io connection to the Gateway (Port 3000).
+     */
+    const socket = io('http://localhost:3000');
+
+    /**
+     * Stores the current active chat room name.
+     * @type {string|null}
+     */
+    let currentRoom = null;
+
+    /**
+     * Generates a random username for the session.
+     * @type {string}
+     */
+    let userName = 'Fan_' + Math.floor(Math.random() * 10000);
+
+    // Display the generated username in the UI
+    const userDisplay = document.getElementById('currentUserName');
+    if (userDisplay) userDisplay.textContent = userName;
+
+    // ---------------------------------------------------------
+    // 3. CHAT FUNCTIONS
+    // ---------------------------------------------------------
+
+    /**
+     * Initializes the chat session for a specific movie.
+     * Joins the Socket.io room and updates the UI.
+     *
+     * @param {string} movieId - The ID of the movie to join.
+     */
+    function initializeChat(movieId) {
+        currentRoom = `room_film_${movieId}`;
+
+        // Update the room display in the UI
+        const roomDisplay = document.getElementById('currentRoomDisplay');
+        if (roomDisplay) roomDisplay.textContent = currentRoom;
+
+        // Emit 'joinRoom' event to the server
+        socket.emit('joinRoom', currentRoom);
+        console.log(`[Chat] Joined room: ${currentRoom}`);
+
+        // Provide visual feedback in the chat box
+        const chatBox = document.getElementById('chat-box');
+        if (chatBox) {
+            chatBox.innerHTML = ''; // Clear "Connecting..." message
+            chatBox.innerHTML += `<div style="color: green; font-weight: bold; padding: 10px; border-bottom: 1px solid #ddd;">✅ Joined Room: ${currentRoom}</div>`;
+        }
+    }
+
+    /**
+     * Sends a chat message to the current room.
+     * Triggered by the "Send" button.
+     */
+    function sendChatMessage() {
+        const inputElement = document.getElementById('chat-input');
+        const message = inputElement.value;
+
+        if (currentRoom && message.trim()) {
+            // Emit the message object to the server
+            socket.emit('sendMessage', {
+                roomName: currentRoom,
+                message: message,
+                userId: userName
+            });
+
+            // Clear the input field
+            inputElement.value = '';
+        }
+    }
+
+    /**
+     * Socket Event Listener: Receives incoming messages from the server.
+     * Appends the new message to the chat window.
+     *
+     * @param {Object} data - The message payload containing user, text, and timestamp.
+     */
+    socket.on('message', (data) => {
+        const chatBox = document.getElementById('chat-box');
+        if (chatBox) {
+            const messageHTML = `
+                <div style="margin-bottom: 8px; padding: 5px; border-bottom: 1px solid #f0f0f0;">
+                    <strong style="color: #007bff;">${data.user}:</strong> ${data.text}
+                </div>`;
+            chatBox.innerHTML += messageHTML;
+
+            // Auto-scroll to the bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    });
+
+    /**
+     * Socket Event Listener: Logs connection status for debugging.
+     */
+    socket.on('connect', () => console.log("[Socket] Connected with ID:", socket.id));
+    socket.on('connect_error', (err) => console.error("[Socket] Connection Error:", err));
+
+    // ---------------------------------------------------------
+    // 4. MAIN DATA LOADING LOGIC
+    // ---------------------------------------------------------
+
+    /**
+     * Main async function to load movie details.
+     * Orchestrates data retrieval from Spring Boot (DTO) and MongoDB (Reviews).
+     * Renders the final HTML using Handlebars.
+     */
+    async function loadMovieDetail() {
+        // Extract Movie ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const movieId = urlParams.get('id');
+
+        if (!movieId) {
+            document.getElementById('main-content').innerHTML = "<h2>Error: Movie ID not found in URL.</h2>";
+            return;
+        }
+
+        try {
+            console.log(`[App] Loading data for Movie ID: ${movieId}`);
+
+            // A. Fetch the complete Movie DTO (Film + Posters + Cast) from Spring Boot
+            const movieDto = await fetchMovieDetail(movieId);
+
+            if (movieDto && movieDto.movie) {
+                // Update Browser Title and Header
+                document.title = `${movieDto.movie.name} | Details`;
+                document.getElementById('movie-title-header').textContent = movieDto.movie.name;
+
+                // B. Fetch Reviews from MongoDB using the movie name
+                // Note: The Review Service runs on a different port/microservice
+                const reviewsData = await fetchReviews(movieDto.movie.name);
+
+                // C. Merge data into a single context object for Handlebars
+                const context = {
+                    ...movieDto,        // Spreads: movie, posters, cast
+                    reviews: reviewsData // Adds: reviews list
+                };
+
+                // D. Render the template
+                document.getElementById('main-content').innerHTML = template(context);
+
+                // E. Initialize Chat (Now that the page is ready)
+                initializeChat(movieId);
+
+            } else {
+                document.getElementById('main-content').innerHTML = "<p>Movie not found in the database.</p>";
+            }
+
+        } catch (error) {
+            console.error("[App] Critical Error loading page:", error);
+            document.getElementById('main-content').innerHTML = `<p style='color:red'>Error loading data: ${error.message}</p>`;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // 5. INITIALIZATION
+    // ---------------------------------------------------------
+
+    // Start the application flow
+    loadMovieDetail();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>IUM-TWEB | Database Film</title>
+    <link rel="stylesheet" href="static/style.css"> </head>
+<body>
+<header>
+    <h1>🎬 Archivio Completo Film (Gateway: Porta 3000)</h1>
+</header>
+
+<main>
+    <section id="search-section">
+        <h2>Ricerca Film</h2>
+        <input type="text" id="searchInput" placeholder="Nome del film o keyword...">
+        <button onclick="handleSearch()">Cerca</button>
+    </section>
+
+    <section id="movies-list-container">
+        <h2>Elenco Film</h2>
+        <div id="movies-list">
+            Caricamento in corso...
+        </div>
+
+        <div id="pagination-controls">
+            <button onclick="changePage(-1)" id="prevPage">Precedente</button>
+            Pagina <span id="currentPage">1</span> di <span id="totalPages">?</span>
+            <button onclick="changePage(1)" id="nextPage">Successiva</button>
+        </div>
+    </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.7/dist/handlebars.min.js"></script>
+<script src="client.js"></script>
+
+<script id="movies-template" type="text/x-handlebars-template">
+    {{#each content}}
+        <div class="movie-card" style="display: flex; gap: 15px; margin-bottom: 20px;">
+            <img src="{{posterLink}}" alt="No Poster" style="width: 100px; height: 150px; object-fit: cover; border-radius: 5px;">
+            <div>
+                <h3>{{movie.name}} ({{getYear movie.date}})</h3>
+                <p><strong>Rating:</strong> {{formatRating movie.rating}} / 5</p>
+                <a href="movie_detail.html?id={{movie.id}}">View Details</a>
+            </div>
+        </div>
+    {{/each}}
+</script>
+
+<script>
+    // --- Helper Handlebars ---
+
+    Handlebars.registerHelper('getYear', function(yearNumber) {
+        if (!yearNumber || yearNumber === 0 || yearNumber < 1850) {
+            return 'N.A.';
+        }
+        return yearNumber;
+    });
+
+    // Helper per formattare il Rating (Gestione N/A)
+    Handlebars.registerHelper('formatRating', function(rating) {
+        if (rating === null || rating === undefined || rating === 0) {
+            return 'N.A.';
+        }
+        return rating;
+    });
+
+    // Logica Frontend (Implementazione)
+    let currentPage = 0;
+    const pageSize = 20;
+    const template = Handlebars.compile(document.getElementById('movies-template').innerHTML);
+
+    async function loadMovies() {
+        const data = await getMoviesList(currentPage, pageSize, {
+            name: document.getElementById('searchInput').value
+        });
+
+        document.getElementById('movies-list').innerHTML = template(data);
+
+        // Aggiorna controlli paginazione
+        document.getElementById('currentPage').textContent = currentPage + 1;
+        document.getElementById('totalPages').textContent = data.totalPages;
+        document.getElementById('prevPage').disabled = currentPage === 0;
+        document.getElementById('nextPage').disabled = currentPage === data.totalPages - 1;
+    }
+
+    function changePage(delta) {
+        currentPage += delta;
+        loadMovies();
+    }
+
+    function handleSearch() {
+        const searchValue = document.getElementById('searchInput').value;
+        console.log("Valore di ricerca inviato:", searchValue);
+        currentPage = 0;
+        loadMovies();
+    }
+
+    // Avvio iniziale
+    loadMovies();
+</script>
+</body>
+</html>

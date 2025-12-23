@@ -6,9 +6,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 /**
  * REST Controller for managing Poster resources.
+ * Provides endpoints for paginated access, movie-specific posters, and CRUD operations.
  */
 @RestController
 @RequestMapping("/posters")
@@ -20,7 +22,11 @@ public class PosterController {
 
     /**
      * GET /posters
-     * Retrieves a paginated list of all posters.
+     * Retrieves a paginated list of all posters available in the database.
+     *
+     * @param page Page number (default 0).
+     * @param size Items per page (default 20).
+     * @return A {@link Page} of {@link Poster} objects.
      */
     @GetMapping
     public Page<Poster> getAllPosters(
@@ -31,30 +37,38 @@ public class PosterController {
     }
 
     /**
-     * GET /posters/movie/{movieId}
-     * Retrieves the poster for a specific Movie ID.
+     * GET /posters/{id}
+     * Retrieves a single poster by its unique surrogate ID.
+     *
+     * @param id The Long unique identifier of the poster.
+     * @return The {@link Poster} if found, or 404 Not Found.
      */
-    @GetMapping("/movie/{movieId}")
-    public ResponseEntity<Poster> getPosterByMovieId(@PathVariable Integer movieId) {
-        return postersService.getPosterByMovieId(movieId)
+    @GetMapping("/{id}")
+    public ResponseEntity<Poster> getOne(@PathVariable Long id) {
+        return postersService.getPosterById(id)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
-     * GET /posters/{id}
-     * Retrieves the poster by unique ID.
+     * GET /posters/movie/{movieId}
+     * Retrieves all posters associated with a specific movie.
+     *
+     * @param movieId The Integer ID of the movie.
+     * @return A list of {@link Poster} objects linked to the movie.
      */
-    @GetMapping("/{id}")
-    public ResponseEntity<Poster> getById(@PathVariable Long id) {
-        return postersService.getPosterById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/movie/{movieId}")
+    public ResponseEntity<List<Poster>> getPostersByMovie(@PathVariable Integer movieId) {
+        List<Poster> posters = postersService.getPostersByMovieId(movieId);
+        return ResponseEntity.ok(posters);
     }
 
     /**
      * POST /posters
-     * Creates a new poster.
+     * Creates a new poster entry.
+     *
+     * @param posterDto Data Transfer Object containing poster details.
+     * @return The newly created {@link Poster}.
      */
     @PostMapping
     public Poster createPoster(@RequestBody PosterDTO posterDto) {
@@ -63,7 +77,11 @@ public class PosterController {
 
     /**
      * PUT /posters/{id}
-     * Updates an existing poster link by unique ID.
+     * Updates the link or information of an existing poster.
+     *
+     * @param id The Long unique identifier of the poster to update.
+     * @param updatedPosterDto The updated data.
+     * @return The updated {@link Poster} if successful, or 404 Not Found.
      */
     @PutMapping("/{id}")
     public ResponseEntity<Poster> updatePoster(@PathVariable Long id, @RequestBody PosterDTO updatedPosterDto) {
@@ -74,7 +92,10 @@ public class PosterController {
 
     /**
      * DELETE /posters/{id}
-     * Deletes a poster by unique ID.
+     * Deletes a poster from the database.
+     *
+     * @param id The Long unique identifier of the poster.
+     * @return 204 No Content if deleted, or 404 Not Found.
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePoster(@PathVariable Long id) {

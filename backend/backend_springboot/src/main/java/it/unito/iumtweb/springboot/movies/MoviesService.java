@@ -1,9 +1,17 @@
 package it.unito.iumtweb.springboot.movies;
 
+import it.unito.iumtweb.springboot.actors.Actors;
+import it.unito.iumtweb.springboot.actors.ActorsRepository;
+import it.unito.iumtweb.springboot.poster.Poster;
+import it.unito.iumtweb.springboot.poster.PosterRepository;
+import it.unito.iumtweb.springboot.languages.Languages;
+import it.unito.iumtweb.springboot.languages.LanguagesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -15,35 +23,32 @@ import java.util.Optional;
 @Service
 public class MoviesService {
 
-    @Autowired
-    private MoviesRepository repo;
+    @Autowired private MoviesRepository repo;
+    @Autowired private PosterRepository posterRepo;
+    @Autowired private ActorsRepository actorsRepo;
+    @Autowired private LanguagesRepository languageRepo;
 
     /**
      * Retrieves a paginated list of movies based on optional filters.
-     * <p>
-     * Filters are applied hierarchically:
-     * 1. Name search
-     * 2. Rating range
-     * 3. Year range (Integer)
-     * 4. Duration (minute) filter
-     * If no filters are provided, returns all movies.
-     * </p>
-     *
-     * @param name Name keyword.
-     * @param minRating Minimum rating.
-     * @param maxRating Maximum rating.
-     * @param startYear Start year (Integer).
-     * @param endYear End year (Integer).
-     * @param minMinute Minimum duration.
-     * @param pageable Pagination info.
-     * @return A {@link Page} of {@link Movies}.
      */
+    public Optional<MovieDetailDTO> getMovieDetailById(Long id) {
+        return repo.findById(id).map(movie -> {
+            Integer movieIdInt = id.intValue();
+
+            List<Poster> posters = posterRepo.findByMovieId(movieIdInt);
+            List<Actors> cast = actorsRepo.findByMovieId(movieIdInt);
+            List<Languages> languages = languageRepo.findByMovieId(movieIdInt);
+
+           return new MovieDetailDTO(movie, posters, cast, languages);
+        });
+    }
+
     public Page<Movies> getMovies(
             String name,
             Float minRating,
             Float maxRating,
-            Integer startYear, // Changed from LocalDateTime
-            Integer endYear,   // Changed from LocalDateTime
+            Integer startYear,
+            Integer endYear,
             Integer minMinute,
             Pageable pageable
     ) {
@@ -62,16 +67,10 @@ public class MoviesService {
         return repo.findAll(pageable);
     }
 
-    /**
-     * Retrieves a single movie by its ID.
-     */
     public Optional<Movies> getMovieById(Long id) {
         return repo.findById(id);
     }
 
-    /**
-     * Creates a new movie entry from a DTO.
-     */
     public Movies createMovie(MoviesDTO movieDto) {
         Movies newMovie = new Movies();
         newMovie.setName(movieDto.getName());
@@ -83,9 +82,6 @@ public class MoviesService {
         return repo.save(newMovie);
     }
 
-    /**
-     * Updates an existing movie entry.
-     */
     public Optional<Movies> updateMovie(Long id, MoviesDTO updatedDto) {
         return repo.findById(id)
                 .map(existing -> {
@@ -99,9 +95,6 @@ public class MoviesService {
                 });
     }
 
-    /**
-     * Deletes a movie by ID.
-     */
     public boolean deleteMovie(Long id) {
         if (!repo.existsById(id)) return false;
         repo.deleteById(id);

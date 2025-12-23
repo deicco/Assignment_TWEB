@@ -1,5 +1,6 @@
 package it.unito.iumtweb.springboot.movies;
 
+import it.unito.iumtweb.springboot.poster.PosterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -7,65 +8,90 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * REST Controller for managing Movie resources.
  * <p>
- * Exposes endpoints to query and manipulate the main movie catalog.
- * Supports advanced filtering and pagination.
+ * Handles paginated listings with posters for the homepage and
+ * provides full movie details (including languages) for the detail page.
  * </p>
  */
 @RestController
 @RequestMapping("/movies")
-// Enables Cross-Origin requests from the Express Server
 @CrossOrigin(origins = "http://localhost:3000")
 public class MoviesController {
 
     @Autowired
     private MoviesService service;
 
+    @Autowired
+    private PosterRepository posterRepo;
+
     /**
      * GET /movies
-     * Retrieves a list of movies with optional filters.
+     * Retrieves a paginated list of movies. Each element is a Map containing
+     * the movie object and its primary poster link.
      *
-     * @param name Name filter (partial match).
+     * @param name Optional name filter.
      * @param minRating Minimum rating filter.
      * @param maxRating Maximum rating filter.
-     * @param startYear Start year filter (Integer).
-     * @param endYear End year filter (Integer).
+     * @param startYear Start year filter.
+     * @param endYear End year filter.
      * @param minMinute Minimum duration filter.
-     * @param page Page number (default 0).
+     * @param page Page index (default 0).
      * @param size Items per page (default 20).
-     * @return A {@link Page} of {@link Movies}.
+     * @return A page of maps with "movie" and "posterLink".
      */
     @GetMapping
-    public Page<Movies> listMovies(
+    public Page<Map<String, Object>> listMovies(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Float minRating,
             @RequestParam(required = false) Float maxRating,
-            @RequestParam(required = false) Integer startYear, // Changed from LocalDateTime
-            @RequestParam(required = false) Integer endYear,   // Changed from LocalDateTime
+            @RequestParam(required = false) Integer startYear,
+            @RequestParam(required = false) Integer endYear,
             @RequestParam(required = false) Integer minMinute,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return service.getMovies(name, minRating, maxRating, startYear, endYear, minMinute, pageable);
+        Page<Movies> moviesPage = service.getMovies(name, minRating, maxRating, startYear, endYear, minMinute, pageable);
+
+        return moviesPage.map(movie -> {
+            // Fetch the poster link using movie ID
+            String link = posterRepo.findByMovieId(movie.getId().intValue())
+                    .stream()
+                    .findFirst()
+                    .map(p -> p.getLink())
+                    .orElse("");
+
+            return Map.of(
+                    "movie", movie,
+                    "posterLink", link
+            );
+        });
     }
 
     /**
      * GET /movies/{id}
-     * Retrieves a specific movie by ID.
+     * Retrieves full details for a specific movie, including posters, cast, and languages.
+     *
+     * @param id The unique identifier of the movie.
+     * @return A ResponseEntity containing the MovieDetailDTO.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Movies> getOne(@PathVariable Long id) {
-        return service.getMovieById(id)
+    public ResponseEntity<MovieDetailDTO> getOne(@PathVariable Long id) {
+        return service.getMovieDetailById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
      * POST /movies
-     * Creates a new movie.
+     * Creates a new movie entry.
+     *
+     * @param movieDto DTO containing movie data.
+     * @return The saved movie entity.
      */
     @PostMapping
     public ResponseEntity<Movies> create(@RequestBody MoviesDTO movieDto) {
@@ -75,13 +101,14 @@ public class MoviesController {
 
     /**
      * PUT /movies/{id}
-     * Updates an existing movie.
+     * Updates an existing movie entry.
+     *
+     * @param id The movie ID.
+     * @param movieDto Updated data.
+     * @return The updated entity.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Movies> update(
-            @PathVariable Long id,
-            @RequestBody MoviesDTO movieDto
-    ) {
+    public ResponseEntity<Movies> update(@PathVariable Long id, @RequestBody MoviesDTO movieDto) {
         return service.updateMovie(id, movieDto)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -89,7 +116,10 @@ public class MoviesController {
 
     /**
      * DELETE /movies/{id}
-     * Deletes a movie.
+     * Deletes a movie entry.
+     *
+     * @param id The movie ID.
+     * @return 204 No Content or 404 Not Found.
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

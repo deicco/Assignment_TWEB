@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -26,7 +27,7 @@ public class PostersService {
     /**
      * Retrieves a poster by Movie ID (Integer).
      */
-    public Optional<Poster> getPosterByMovieId(Integer movieId) {
+    public List<Poster> getPosterByMovieId(Integer movieId) {
         return posterRepository.findByMovieId(movieId);
     }
 
@@ -68,5 +69,9 @@ public class PostersService {
             return true;
         }
         return false;
+    }
+
+    public List<Poster> getPostersByMovieId(Integer movieId) {
+        return List.of();
     }
 }

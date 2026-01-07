@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Movie Details | IUM-TWEB</title>
+    <link rel="stylesheet" href="css/style_movie_detail.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+
+<header>
+    <a href="index.html">← Back to List</a>
+    <h1 id="movie-title-header">Loading Movie...</h1>
+</header>
+
+<main id="main-content">
+    <p>Retrieving movie data, please wait...</p>
+</main>
+
+<section id="chat-section">
+    <h2>💬 Thematic Chat</h2>
+    <div id="chat-box" style="height: 250px; overflow-y: scroll;">
+        Connecting to chat...
+    </div>
+    <div style="margin-top: 10px;">
+        <input type="text" id="chat-input" placeholder="Write a message..." style="width: 70%;">
+        <button onclick="sendChatMessage()" style="width: 25%;">Send</button>
+    </div>
+</section>
+
+<script id="detail-template" type="text/x-handlebars-template">
+    <section class="movie-info" style="overflow: hidden;">
+        {{#if posters}}
+            <img src="{{posters.0.link}}" alt="Movie Poster"
+                 style="max-width: 280px; float: right; margin-left: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        {{/if}}
+
+        <h2>{{movie.name}}</h2>
+        <p>
+            <strong>Year:</strong> {{getYear movie.date}} |
+            <strong>Duration:</strong> {{movie.minute}} min |
+            <strong>Rating:</strong> {{formatRating movie.rating}} / 5
+        </p>
+        <p><strong>Tagline:</strong> <em>"{{movie.tagline}}"</em></p>
+
+        <h3>Description</h3>
+        <p>{{movie.description}}</p>
+    </section>
+
+    <section class="related-data">
+        <h3>🌍 Available Languages</h3>
+        {{#if languages}}
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                {{#each languages}}
+                    <div class="tag-pill">
+                        <strong>{{language}}</strong>
+                        {{#if type}} <span>({{type}})</span> {{/if}}
+                    </div>
+                {{/each}}
+            </div>
+        {{else}}
+            <p>No language information available for this movie.</p>
+        {{/if}}
+    </section>
+
+    <section class="related-data">
+        <h3>👥 Main Cast</h3>
+        {{#if cast}}
+            <ul class="cast-list">
+                {{#each cast}}
+                    <li><strong>{{name}}</strong> as <span>{{role}}</span></li>
+                {{/each}}
+            </ul>
+        {{else}}
+            <p>No cast data found for this movie.</p>
+        {{/if}}
+    </section>
+
+    <section class="related-data">
+        <h3>⭐️ Critical Reviews</h3>
+        {{#if reviews}}
+            <div class="reviews-container">
+                {{#each reviews}}
+                    <div class="review-card">
+                        <p><strong>Score: {{review_score}}</strong> - {{critic_name}} ({{publisher_name}})</p>
+                        <p style="font-style: italic;">"{{review_content}}"</p>
+                    </div>
+                {{/each}}
+            </div>
+        {{else}}
+            <p>No reviews found in the database.</p>
+        {{/if}}
+    </section>
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.7/dist/handlebars.min.js"></script>
+<script>
+    Handlebars.registerHelper('getYear', y => (y && y > 1850) ? y : 'N/A');
+    Handlebars.registerHelper('formatRating', r => (r && r > 0) ? r : 'N/A');
+
+    const templateSource = document.getElementById('detail-template').innerHTML;
+    const template = Handlebars.compile(templateSource);
+
+    const socket = io('http://localhost:3000');
+    let currentRoom = null;
+    let userName = 'Fan_' + Math.floor(Math.random() * 10000);
+
+    const userDisplay = document.getElementById('currentUserName');
+    if (userDisplay) userDisplay.textContent = userName;
+
+    function initializeChat(movieId) {
+        currentRoom = `room_film_${movieId}`;
+        const roomDisplay = document.getElementById('currentRoomDisplay');
+        if (roomDisplay) roomDisplay.textContent = currentRoom;
+
+        socket.emit('joinRoom', currentRoom);
+
+        const chatBox = document.getElementById('chat-box');
+        if (chatBox) {
+            chatBox.innerHTML = '';
+            chatBox.innerHTML += `<div style="color: #ffffff; font-weight: bold; padding: 10px; border-bottom: 1px solid #333;">✅ Joined Room: ${currentRoom}</div>`;
+        }
+    }
+
+    function sendChatMessage() {
+        const inputElement = document.getElementById('chat-input');
+        const message = inputElement.value;
+
+        if (currentRoom && message.trim()) {
+            socket.emit('sendMessage', {
+                roomName: currentRoom,
+                message: message,
+                userId: userName
+            });
+            inputElement.value = '';
+        }
+    }
+
+    socket.on('message', (data) => {
+        const chatBox = document.getElementById('chat-box');
+        if (chatBox) {
+            const messageHTML = `
+                <div style="margin-bottom: 8px; padding: 5px; border-bottom: 1px solid #333;">
+                    <strong style="color: #ffffff;">${data.user}:</strong>
+                    <span style="color: #cccccc;">${data.text}</span>
+                </div>`;
+            chatBox.innerHTML += messageHTML;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    });
+
+    socket.on('connect', () => {});
+    socket.on('connect_error', (err) => {});
+
+    async function fetchMovieDetail(id) {
+        const response = await axios.get(`http://localhost:3000/api/movies/${id}`);
+        return response.data;
+    }
+
+    async function fetchReviews(title) {
+
+        try {
+            const response = await axios.get(`http://localhost:3000/reviews/movie/${title}`);
+            return response.data;
+        } catch (e) {
+            console.log("No reviews found or error fetching reviews");
+            return [];
+        }
+    }
+
+    async function loadMovieDetail() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const movieId = urlParams.get('id');
+
+        if (!movieId) {
+            document.getElementById('main-content').innerHTML = "<h2>Error: Movie ID not found in URL.</h2>";
+            return;
+        }
+
+        try {
+            const response = await axios.get(`http://localhost:3000/api/movies/${movieId}`);
+            const movieDto = response.data;
+
+            if (movieDto && movieDto.movie) {
+                document.title = `${movieDto.movie.name} | Details`;
+                document.getElementById('movie-title-header').textContent = movieDto.movie.name;
+
+                let reviewsData = [];
+                try {
+                    const revRes = await axios.get(`http://localhost:3000/reviews/movie/${movieDto.movie.name}`);
+                    reviewsData = revRes.data;
+                } catch(e) { console.log("Reviews non disponibili"); }
+
+                const context = {
+                    ...movieDto,
+                    reviews: reviewsData
+                };
+
+                document.getElementById('main-content').innerHTML = template(context);
+                initializeChat(movieId);
+
+            } else {
+                document.getElementById('main-content').innerHTML = "<p>Movie not found in the database.</p>";
+            }
+
+        } catch (error) {
+            document.getElementById('main-content').innerHTML = `<p style='color:red'>Error loading data: ${error.message}</p>`;
+        }
+    }
+
+    loadMovieDetail();
+
+</script>
+</body>
+</html>

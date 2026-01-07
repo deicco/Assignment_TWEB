@@ -1,8 +1,8 @@
 /**
  * Server.js
- * * Entry point for the Reviews Microservice (Node.js/Express).
+ * Entry point for the Reviews Microservice (Node.js/Express).
  * Handles connection to MongoDB and serves dynamic data (Rotten Tomatoes Reviews).
- * * @module ReviewsServer
+ * @module ReviewsServer
  */
 
 const express = require('express');
@@ -20,15 +20,69 @@ const PORT = 3001; // Specific port for this microservice
 app.use(cors());
 app.use(express.json());
 
-// --- 1. SMART PATH CONFIGURATION ---
+// --- SWAGGER CONFIGURATION (METODO BLINDATO JS) ---
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsDoc = require('swagger-jsdoc');
 
-/*
- * Path Strategy:
- * 1. submissionPath: Looks for data inside the final 'solution' folder structure (Relative path for the exam).
- * Logic: Up 2 levels from 'backend/express_server' to reach 'solution', then into 'data'.
- * * 2. devPath: Looks for data in your current separate folder on Desktop (Absolute/Relative path for development).
- * Logic: Up 3 levels to Desktop, then into 'Assignment_IUM_TWEB/solution/data'.
- */
+const swaggerOptions = {
+    definition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'Reviews Microservice API',
+            version: '1.0.0',
+            description: 'API per le recensioni MongoDB'
+        },
+        servers: [
+            { url: 'http://localhost:3001' }
+        ],
+        // DEFINIAMO LE ROTTE QUI (Così evitiamo errori di indentazione YAML)
+        paths: {
+            '/reviews/movie/{title}': {
+                get: {
+                    summary: 'Cerca recensioni per titolo del film',
+                    description: 'Restituisce una lista di recensioni cercando per titolo esatto o parziale.',
+                    parameters: [
+                        {
+                            name: 'title',
+                            in: 'path',
+                            required: true,
+                            description: 'Il titolo del film',
+                            schema: {
+                                type: 'string'
+                            }
+                        }
+                    ],
+                    responses: {
+                        200: {
+                            description: 'Lista delle recensioni trovate',
+                            content: {
+                                'application/json': {
+                                    schema: {
+                                        type: 'array',
+                                        items: {
+                                            type: 'object'
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        500: {
+                            description: 'Errore del server'
+                        }
+                    }
+                }
+            }
+        }
+    },
+    apis: [], // Lasciamo vuoto perché abbiamo definito tutto sopra manualmente
+};
+
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+// --------------------------------------------------
+
+
+// --- 1. SMART PATH CONFIGURATION ---
 
 const submissionPath = path.join(__dirname, '..', '..', 'data', 'rotten_tomatoes_reviews.csv');
 const devPath = path.join(__dirname, '..', '..', '..', 'Assignment_IUM_TWEB', 'solution', 'data', 'rotten_tomatoes_reviews.csv');
@@ -43,17 +97,10 @@ if (fs.existsSync(submissionPath)) {
     csvPath = devPath;
 } else {
     console.error("❌ FATAL ERROR: Data file 'rotten_tomatoes_reviews.csv' not found!");
-    console.error("   - Checked Submission Path: " + submissionPath);
-    console.error("   - Checked Development Path: " + devPath);
-    // We do not exit process here to allow the server to start, but import will fail.
 }
 
 // --- 2. DATABASE CONNECTION ---
 
-/**
- * Connects to the local MongoDB instance.
- * Upon successful connection, checks if data import is required.
- */
 mongoose.connect('mongodb://localhost:27017/mydatabase')
     .then(() => {
         console.log('✅ MongoDB Connected');
@@ -68,12 +115,7 @@ mongoose.connect('mongodb://localhost:27017/mydatabase')
 
 /**
  * GET /reviews/movie/:title
- * * Retrieves reviews for a specific movie by title.
- * It uses a two-step search strategy: Exact Match followed by Partial Match.
- * * @route GET /reviews/movie/:title
- * @param {string} title - The title of the movie to search for.
- * @param {number} [limit=20] - Optional query param to limit results.
- * @returns {Array} List of review objects.
+ * Retrieves reviews for a specific movie by title.
  */
 app.get('/reviews/movie/:title', async (req, res) => {
     try {
@@ -82,8 +124,7 @@ app.get('/reviews/movie/:title', async (req, res) => {
 
         console.log(`🔍 [ReviewServer] Searching for: '${title}'`);
 
-        // Strategy A: Exact Match (Case Insensitive)
-        // Uses regex start (^) and end ($) anchors
+        // Strategy A: Exact Match
         let query = {
             movie_title: { $regex: new RegExp(`^${title}$`, 'i') }
         };
@@ -91,7 +132,7 @@ app.get('/reviews/movie/:title', async (req, res) => {
         let reviews = await Review.find(query).limit(limit);
         console.log(`   👉 Exact Match Results: ${reviews.length}`);
 
-        // Strategy B: Fallback to Partial Match if no exact match found
+        // Strategy B: Fallback to Partial Match
         if (reviews.length === 0) {
             console.log(`   ⚠️ No exact match. Attempting partial search...`);
             query = {
@@ -118,13 +159,6 @@ app.listen(PORT, () => {
 
 // --- 4. DATA IMPORT LOGIC ---
 
-/**
- * Checks if the 'Reviews' collection is empty.
- * If empty, it streams the CSV file and performs a bulk insert into MongoDB.
- * Uses batch processing to manage memory usage efficiently.
- * * @async
- * @function checkAndImportData
- */
 async function checkAndImportData() {
     try {
         const count = await Review.countDocuments();
@@ -134,17 +168,16 @@ async function checkAndImportData() {
             console.log(`   Reading from: ${csvPath}`);
 
             const reviewsBuffer = [];
-            const BATCH_SIZE = 5000; // Batch size for bulk insertion
+            const BATCH_SIZE = 5000;
 
             fs.createReadStream(csvPath)
                 .pipe(csv())
                 .on('data', (data) => {
-                    // Normalize and map CSV data to Schema
                     reviewsBuffer.push({
                         rotten_tomatoes_link: "https://www.rottentomatoes.com/" + data.rotten_tomatoes_link,
                         movie_title: data.movie_title,
                         critic_name: data.critic_name,
-                        top_critic: data.top_critic === 'True', // Convert string "True" to boolean
+                        top_critic: data.top_critic === 'True',
                         publisher_name: data.publisher_name,
                         review_type: data.review_type,
                         review_score: data.review_score,
@@ -152,7 +185,6 @@ async function checkAndImportData() {
                         review_content: data.review_content
                     });
 
-                    // Perform Batch Insert when buffer is full
                     if (reviewsBuffer.length >= BATCH_SIZE) {
                         const chunk = reviewsBuffer.splice(0, BATCH_SIZE);
                         Review.insertMany(chunk, { ordered: false })
@@ -160,7 +192,6 @@ async function checkAndImportData() {
                     }
                 })
                 .on('end', async () => {
-                    // Insert remaining documents
                     if (reviewsBuffer.length > 0) {
                         await Review.insertMany(reviewsBuffer, { ordered: false });
                     }

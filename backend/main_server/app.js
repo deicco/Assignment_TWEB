@@ -1,11 +1,11 @@
 /**
  * app.js
  * Main Gateway Server for the Cinema Application.
- * * Responsibilities:
+ * Responsibilities:
  * 1. Acts as a reverse proxy for the Java Spring Boot Backend (Static Data).
  * 2. Acts as a reverse proxy for the Node.js MongoDB Microservice (Dynamic Data/Reviews).
  * 3. Manages Real-Time Chat communication via Socket.io.
- * * @module MainGatewayServer
+ * @module MainGatewayServer
  */
 
 const express = require('express');
@@ -13,6 +13,10 @@ const cors = require('cors');
 const axios = require('axios');
 const http = require('http');
 const { Server } = require('socket.io');
+
+// --- SWAGGER IMPORTS ---
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsDoc = require('swagger-jsdoc');
 
 const app = express();
 const PORT = 3000;
@@ -24,6 +28,70 @@ const MONGO_URL = 'http://localhost:3001'; // MongoDB Review Server (Dynamic Dat
 // --- Middleware Configuration ---
 app.use(cors());
 app.use(express.json());
+
+// ----------------------------------------------------
+// SWAGGER CONFIGURATION (Metodo Sicuro JS)
+// ----------------------------------------------------
+const swaggerOptions = {
+    definition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'Cinema Gateway API',
+            version: '1.0.0',
+            description: 'Gateway principale che unisce i servizi Java (Spring Boot) e Node.js (Mongo) + Chat'
+        },
+        servers: [
+            { url: `http://localhost:${PORT}`, description: 'Main Gateway Server' }
+        ],
+        // Definiamo le rotte qui manualmente per evitare errori di spazi/indentazione
+        paths: {
+            '/reviews/movie/{title}': {
+                get: {
+                    summary: 'Ottieni recensioni (Proxy verso MongoDB)',
+                    description: 'Inoltra la richiesta al microservizio recensioni sulla porta 3001.',
+                    parameters: [
+                        {
+                            name: 'title',
+                            in: 'path',
+                            required: true,
+                            description: 'Il titolo del film',
+                            schema: { type: 'string' }
+                        },
+                        {
+                            name: 'limit',
+                            in: 'query',
+                            required: false,
+                            description: 'Limite numero recensioni (default 20)',
+                            schema: { type: 'integer', default: 20 }
+                        }
+                    ],
+                    responses: {
+                        200: {
+                            description: 'Lista recensioni ottenuta con successo',
+                            content: { 'application/json': { schema: { type: 'array', items: { type: 'object' } } } }
+                        },
+                        503: { description: 'Servizio Recensioni non disponibile' }
+                    }
+                }
+            },
+            '/api/movies': {
+                get: {
+                    summary: 'Esempio Proxy Java: Ottieni Film',
+                    description: 'Esempio di richiesta inoltrata al backend Spring Boot. Tutte le richieste /api/* vengono inoltrate.',
+                    responses: {
+                        200: { description: 'Dati dal server Java' }
+                    }
+                }
+            }
+        }
+    },
+    apis: []
+};
+
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+// ----------------------------------------------------
+
 
 // --- Socket.io Initialization ---
 const server = http.createServer(app);
@@ -40,9 +108,7 @@ const io = new Server(server, {
 
 /**
  * Routes requests for reviews to the MongoDB Microservice.
- * * @route GET /reviews/movie/:title
- * @param {string} title - The title of the movie to search for.
- * @param {number} [limit=20] - Query parameter to limit the number of results.
+ * @route GET /reviews/movie/:title
  */
 app.get('/reviews/movie/:title', async (req, res) => {
     const { title } = req.params;
@@ -69,7 +135,7 @@ app.get('/reviews/movie/:title', async (req, res) => {
 /**
  * General Gateway for all requests directed to the Java Spring Boot Backend.
  * Intercepts all calls starting with /api.
- * * @route ALL /api/*
+ * @route ALL /api/*
  */
 app.use('/api', async (req, res) => {
 

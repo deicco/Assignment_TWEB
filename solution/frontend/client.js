@@ -1,11 +1,21 @@
 /**
- * client.js
- * Gestisce tutte le comunicazioni di rete con il Gateway (Porta 3000).
+ * @file client.js
+ * @description Frontend network handler. Connects the WebStorm static server (Port 63343)
+ * to the Express Gateway (Port 3000).
+ * @version 1.3.0
  */
 
-const GATEWAY_URL = 'http://localhost:3000';
+/**
+ * @description The base URL points to the Gateway server.
+ * This is required because the frontend is running on a different port than the backend.
+ */
+const BASE_URL = 'http://localhost:3000';
 
-// Helper per pulire i parametri (rimuove null/undefined/stringhe vuote)
+/**
+ * @description Helper to remove null, undefined, or empty string parameters from requests.
+ * @param {Object} params - The raw parameters object.
+ * @returns {Object} A cleaned object with only valid parameters.
+ */
 function cleanParams(params) {
     const cleaned = {};
     for (const key in params) {
@@ -17,80 +27,68 @@ function cleanParams(params) {
 }
 
 /**
- * 1. Recupera la lista paginata di film (da Java).
- * Endpoint: /api/movies
+ * @description 1. Fetches a paginated list of movies from the Gateway.
+ * Aligned with Spring Boot Page object structure.
+ *
+ * @param {number} page - Current page index.
+ * @param {number} size - Items per page.
+ * @param {Object} filters - Search criteria (e.g., { name: '...' }).
+ * @returns {Promise<Object>} The Spring Page object { content: [], totalPages: ... }.
  */
 async function getMoviesList(page, size, filters = {}) {
     const rawParams = {
         page: page,
         size: size,
-        name: filters.name,
-        startYear: filters.startYear,
-        endYear: filters.endYear
+        name: filters.name
     };
 
     const params = cleanParams(rawParams);
 
     try {
-        // Usa /api/movies per andare su Java
-        const response = await axios.get(`${GATEWAY_URL}/api/movies`, { params });
+        /**
+         * Hits the Express Gateway (3000), which proxies to Spring Boot (8082).
+         *
+         */
+        const response = await axios.get(`${BASE_URL}/movies`, { params });
         return response.data;
     } catch (error) {
-        console.error("Errore getMoviesList:", error);
+        console.error("[Client] getMoviesList Error:", error.message);
         return { content: [], totalPages: 0, totalElements: 0 };
     }
 }
 
 /**
- * 2. Recupera dettaglio film (da Java).
- * Endpoint: /api/movies/{id}
+ * @description 2. Fetches full movie details and reviews.
+ * Uses the PathVariable pattern required by the Spring Controller.
+ *
+ * @param {string|number} movieId - The unique ID of the movie.
+ * @returns {Promise<Object|null>} Combined data from movie and review services.
  */
 async function fetchMovieDetail(movieId) {
     try {
-        const response = await axios.get(`${GATEWAY_URL}/api/movies/${movieId}`);
+        /**
+         * Endpoint mapped to @GetMapping("/{id}") in Spring Boot via Express proxy.
+         *
+         */
+        const response = await axios.get(`${BASE_URL}/movies/${movieId}`);
         return response.data;
     } catch (error) {
-        console.error(`Errore fetchMovieDetail (${movieId}):`, error);
+        console.error(`[Client] fetchMovieDetail Error (ID: ${movieId}):`, error.message);
         return null;
     }
 }
 
 /**
- * 3. Recupera dati correlati come attori (da Java).
- * Endpoint: /api/actors/movie/{id}
+ * @description 3. Submits a new review to the Review Server via the Gateway.
+ * @param {Object} reviewData - Review details { movie_title, critic_name, review_content }.
+ * @returns {Promise<Object|null>} The saved review response.
  */
-async function fetchRelatedPeople(movieId, endpoint) {
+async function postReview(reviewData) {
     try {
-        const response = await axios.get(`${GATEWAY_URL}/api/${endpoint}/${movieId}`);
+        const response = await axios.post(`${BASE_URL}/movies/details`, reviewData);
         return response.data;
     } catch (error) {
-        console.error(`Errore fetchRelatedPeople (${endpoint}):`, error);
-        return [];
-    }
-}
-
-/**
- * 4. Recupera RECENSIONI (da MongoDB via Gateway).
- * CORREZIONE: NON usare /api/. Usa la rotta dedicata del Gateway.
- * Endpoint: /reviews/movie/{title}
- */
-async function fetchReviews(movieTitle) {
-    if (!movieTitle) return [];
-
-    try {
-        // Encode del titolo per gestire spazi e caratteri speciali (es. Percy Jackson & ...)
-        const encodedTitle = encodeURIComponent(movieTitle.trim());
-
-        // 🛠️ NOTA BENE: Qui NON c'è '/api'. Chiamiamo direttamente /reviews/movie/...
-        const url = `${GATEWAY_URL}/reviews/movie/${encodedTitle}`;
-
-        console.log(`[Client] Richiedo recensioni a: ${url}`); // Debug Log
-
-        const response = await axios.get(url);
-        return response.data;
-    } catch (error) {
-        // È normale avere 404 se non ci sono recensioni, o se il film non esiste su Mongo
-        console.warn(`[Client] Nessuna recensione trovata per "${movieTitle}" (o errore server).`);
-        return [];
+        console.error("[Client] postReview Error:", error.message);
+        return null;
     }
 }

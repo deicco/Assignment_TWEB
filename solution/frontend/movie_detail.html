@@ -154,7 +154,7 @@
     socket.on('connect_error', (err) => {});
 
     async function fetchMovieDetail(id) {
-        const response = await axios.get(`http://localhost:3000/api/movies/${id}`);
+        const response = await axios.get(`http://localhost:3000/movies/${id}`);
         return response.data;
     }
 
@@ -173,39 +173,15 @@
         const urlParams = new URLSearchParams(window.location.search);
         const movieId = urlParams.get('id');
 
-        if (!movieId) {
-            document.getElementById('main-content').innerHTML = "<h2>Error: Movie ID not found in URL.</h2>";
-            return;
-        }
+        if (!movieId) return;
 
-        try {
-            const response = await axios.get(`http://localhost:3000/api/movies/${movieId}`);
-            const movieDto = response.data;
+        // Usa la funzione definita in client.js
+        const combinedData = await fetchMovieDetail(movieId);
 
-            if (movieDto && movieDto.movie) {
-                document.title = `${movieDto.movie.name} | Details`;
-                document.getElementById('movie-title-header').textContent = movieDto.movie.name;
-
-                let reviewsData = [];
-                try {
-                    const revRes = await axios.get(`http://localhost:3000/reviews/movie/${movieDto.movie.name}`);
-                    reviewsData = revRes.data;
-                } catch(e) { console.log("Reviews non disponibili"); }
-
-                const context = {
-                    ...movieDto,
-                    reviews: reviewsData
-                };
-
-                document.getElementById('main-content').innerHTML = template(context);
-                initializeChat(movieId);
-
-            } else {
-                document.getElementById('main-content').innerHTML = "<p>Movie not found in the database.</p>";
-            }
-
-        } catch (error) {
-            document.getElementById('main-content').innerHTML = `<p style='color:red'>Error loading data: ${error.message}</p>`;
+        if (combinedData && combinedData.movie) {
+            // Renderizza il template con i dati uniti
+            document.getElementById('main-content').innerHTML = template(combinedData);
+            initializeChat(movieId);
         }
     }
 

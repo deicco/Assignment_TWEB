@@ -35,7 +35,7 @@ const swaggerOptions = {
         servers: [
             { url: 'http://localhost:3001' }
         ],
-        // DEFINIAMO LE ROTTE QUI (Così evitiamo errori di indentazione YAML)
+
         paths: {
             '/reviews/movie/{title}': {
                 get: {
@@ -74,7 +74,7 @@ const swaggerOptions = {
             }
         }
     },
-    apis: [], // Lasciamo vuoto perché abbiamo definito tutto sopra manualmente
+    apis: [],
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);

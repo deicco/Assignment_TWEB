@@ -19,7 +19,7 @@ function initSocket(server) {
      */
     const io = new Server(server, {
         cors: {
-            origin: "http://localhost:63343",
+            origin: "http://localhost:63344",
             methods: ["GET", "POST"]
         }
     });

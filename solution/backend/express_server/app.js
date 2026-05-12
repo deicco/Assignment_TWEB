@@ -1,40 +1,43 @@
 /**
  * Main Express application setup.
- * Configures middleware, routes, and database connection.
+ * Configures middleware, routes, and database connection for the Dataset Microservice.
  */
 
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-const database = require('./databases/movieverse')
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var reviewsRouter = require('./routes/reviews');
-var moviesRouter = require('./routes/movies');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 
-//Swagger
+// Inizializza la connessione a MongoDB e l'eventuale importazione dei CSV
+require('./databases/movieverse');
+
+const reviewsRouter = require('./routes/reviews');
+const moviesRouter = require('./routes/movies');
+
+// Swagger Configuration
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
 
-var app = express();
+const app = express();
 
 /**
  * Application middleware configuration.
  */
 app.use(logger('dev'));
-app.use(express.json());
+app.use(express.json()); // Fondamentale per leggere req.body nelle POST
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-//Swagger route
+
+/**
+ * Swagger Route
+ */
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 /**
  * Application route definitions.
+ * Solo Movies e Reviews, niente Index o Users!
  */
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.use('/reviews', reviewsRouter);
 app.use('/movies', moviesRouter);
 

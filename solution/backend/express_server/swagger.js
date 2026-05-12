@@ -5,16 +5,18 @@ const options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'Express Mongo API',
+            title: 'Dataset Management API (MongoDB)',
             version: '1.0.0',
-            description: 'API Central Server for movie and review data',
+            description: 'Microservizio Express dedicato alla fornitura di dati dinamici (recensioni) e riferimenti ai film.',
         },
         servers: [
             {
                 url: 'http://localhost:3001',
+                description: 'Dataset Server (Express)'
             },
         ],
     },
+
     apis: ['./routes/*.js', './models/*.js'],
 };
 

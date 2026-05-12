@@ -38,8 +38,11 @@ const mongoose = require('mongoose');
  */
 const Movie = new mongoose.Schema({
 
+    /** Unique identifier matching the CSV and Spring Boot DB (Long/Integer in SQL). */
+    id: { type: Number, required: true, unique: true },
+
     /** Title of the movie (required, max length 50). */
-    name: { type: String, required: true, max: 50 },
+    name: { type: String, required: true},
 
     /** Release year of the movie. */
     year: { type: Number },
@@ -48,7 +51,7 @@ const Movie = new mongoose.Schema({
     tagline: { type: String, max: 100 },
 
     /** Description of the movie (max length 300). */
-    description: { type: String, max: 300 },
+    description: { type: String },
 
     /** Duration of the movie in minutes. */
     minute: { type: Number },

@@ -1,91 +1,53 @@
-/**
- * @file index.js
- * @description Core routing module for the API Gateway.
- * Uses Axios to aggregate data from the Spring Boot and Express microservices,
- * then renders Handlebars views (Server-Side Rendering).
- */
-
 const express = require('express');
-const axios = require('axios');
 const router = express.Router();
+const axios = require('axios');
 
-/** Base URL for the Spring Boot microservice (SQL). */
-const SPRING_BOOT_URL = 'http://localhost:8082';
-
-/** Base URL for the Express microservice (MongoDB). */
-const EXPRESS_DATA_URL = 'http://localhost:3001';
-
-/**
- * @route GET /
- * @description Fetches a paginated list of movies from the Spring Boot server
- * and renders the main index page.
- */
 router.get('/', async (req, res) => {
     try {
-        const response = await axios.get(`${SPRING_BOOT_URL}/movies`, {
-            params: {
-                page: req.query.page || 0,
-                size: 10,
-                name: req.query.name || ''
-            }
-        });
+        const page = req.query.page || 0;
+        const queryName = req.query.name || "";
+
+        let url = `http://localhost:8082/movies?page=${page}&size=20`;
+        if (queryName) url += `&name=${encodeURIComponent(queryName)}`;
+
+        const response = await axios.get(url);
 
         res.render('pages/index', {
-            title: 'Archivio Completo Film',
-            moviesData: response.data
+            title: "Home",
+            moviesData: response.data,
+            queryName: queryName
         });
     } catch (error) {
-        console.error("[Gateway Error] Failed to fetch movie list:", error.message);
-        res.render('pages/index', {
-            title: 'Error',
-            error: 'Unable to contact the main server.'
-        });
+        res.status(500).send("Errore caricamento film.");
     }
 });
 
-/**
- * @route GET /movie_detail
- * @description Aggregates full movie details from Spring Boot and reviews from Express,
- * then renders the movie detail page.
- */
 router.get('/movie_detail', async (req, res) => {
     try {
         const movieId = req.query.id;
+        const movieRes = await axios.get(`http://localhost:8082/movies/${movieId}`);
+        const data = movieRes.data;
 
-        // Redirect to homepage if no ID is provided in the URL
-        if (!movieId) {
-            return res.redirect('/');
-        }
-
-        // 1. Fetch technical details and relationships from Spring Boot (SQL)
-        const springRes = await axios.get(`${SPRING_BOOT_URL}/movies/${movieId}`);
-        const movieData = springRes.data;
-
-        // 2. Fetch reviews from Express (MongoDB) using the movie title
-        let reviewsData = [];
+        let reviews = [];
         try {
-            const movieTitle = encodeURIComponent(movieData.movie.name);
-            const reviewRes = await axios.get(`${EXPRESS_DATA_URL}/reviews/movie/${movieTitle}`);
-            reviewsData = reviewRes.data;
-        } catch (e) {
-            console.warn(`[Gateway Warning] No reviews found for title: ${movieData.movie.name}`);
-        }
+            const reviewRes = await axios.get(`http://localhost:3001/reviews/movie/${encodeURIComponent(data.movie.name)}`);
+            reviews = reviewRes.data;
+        } catch (e) { console.log("Nessuna recensione"); }
 
-        // 3. Render the aggregated data into the Handlebars view
+        const displayLanguages = (data.languages && data.languages.length > 0)
+            ? data.languages.map(l => l.language).join(', ')
+            : "Lingue non specificate";
+
         res.render('pages/movie_detail', {
-            title: movieData.movie.name,
-            movie: movieData.movie,
-            posters: movieData.posters,
-            cast: movieData.cast,
-            reviews: reviewsData
+            title: data.movie.name,
+            movie: data.movie,
+            cast: data.cast,
+            posters: data.posters,
+            displayLanguages: displayLanguages, // <-- Passata al template
+            reviews: reviews
         });
-
     } catch (error) {
-        console.error("[Gateway Error] Failed to fetch movie details:", error.message);
-        res.render('pages/index', {
-            title: 'Error',
-            error: 'Unable to load movie details.'
-        });
+        res.status(404).send("Film non trovato.");
     }
 });
 

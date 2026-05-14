@@ -6,35 +6,42 @@
     {{#if posters}}
         <img src="{{posters.0.link}}" alt="Poster" style="max-width: 280px; float: right; margin-left: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
     {{/if}}
-    <h2>{{movie.name}}</h2>
+    <h2 class="text-orange">{{movie.name}}</h2>
     <p><strong>Anno:</strong> {{getYear movie.date}} | <strong>Rating:</strong> {{formatRating movie.rating}} / 5</p>
     <p><em>"{{movie.tagline}}"</em></p>
     <p>{{movie.description}}</p>
 </section>
 
 <section class="related-data mt-4">
-    <h3>👥 Cast Principale</h3>
+    <h3 class="text-orange">👥 Cast Principale</h3>
     <ul class="list-unstyled">
         {{#each cast}}
             <li><strong>{{this.name}}</strong> nel ruolo di <span>{{this.role}}</span></li>
+        {{else}}
+            <li>Informazioni sul cast non disponibili.</li>
         {{/each}}
     </ul>
 </section>
 
 <section class="related-data mt-4">
-    <h3>⭐️ Recensioni (da MongoDB)</h3>
+    <h3 class="text-orange">🌐 Lingue Disponibili</h3>
+    <p>{{displayLanguages}}</p>
+</section>
+
+<section class="related-data mt-4">
+    <h3 class="text-orange">⭐️ Recensioni (da MongoDB)</h3>
     {{#each reviews}}
         <div class="card bg-dark border-secondary mb-3 p-3">
             <p class="mb-1 text-orange"><strong>{{this.critic_name}}</strong> - Voto: {{this.review_score}}</p>
             <p class="mb-0 small">"{{this.review_content}}"</p>
         </div>
     {{else}}
-        <p>Nessuna recensione disponibile.</p>
+        <p>Nessuna recensione disponibile per questo film.</p>
     {{/each}}
 </section>
 
 <section id="chat-section" class="mt-5 p-4 rounded bg-dark-card border border-orange">
-    <h2>💬 Chat Live</h2>
+    <h2 class="text-orange">💬 Chat Live</h2>
     <div id="chat-box" style="height: 250px; overflow-y: scroll; background: #000; padding: 15px; border-radius: 8px;"></div>
     <div class="mt-3 d-flex gap-2">
         <input type="text" id="chat-input" class="form-control" placeholder="Scrivi un messaggio...">
@@ -59,7 +66,7 @@
     function sendChatMessage() {
         const input = document.getElementById('chat-input');
         if (input.value.trim()) {
-            socket.emit('sendMessage', { roomName: room, message: input.value, userId: user });
+            socket.emit('chatMessage', { room, user, text: input.value });
             input.value = '';
         }
     }

@@ -85,11 +85,38 @@ function onError(error) {
 /**
  * Event listener for HTTP server "listening" event.
  */
-
 function onListening() {
   var addr = server.address();
   var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
+      ? 'pipe ' + addr
+      : 'port ' + addr.port;
   debug('Listening on ' + bind);
+
+  // --- AUTOMATIC BROWSER OPENER ---
+  console.log(`Gateway Server avviato con successo!`);
+  console.log(`In ascolto su http://localhost:${addr.port}`);
+
+  const { exec } = require('child_process');
+  const url = `http://localhost:${addr.port}`;
+
+  let command;
+  switch (process.platform) {
+    case 'win32': // Command for Windows
+      command = `start ${url}`;
+      break;
+    case 'darwin': // Command for macOS
+      command = `open ${url}`;
+      break;
+    default: // Command for Linux
+      command = `xdg-open ${url}`;
+      break;
+  }
+
+  exec(command, (err) => {
+    if (err) {
+      console.error("Impossibile aprire il browser in automatico:", err.message);
+    } else {
+      console.log("Browser aperto automaticamente.");
+    }
+  });
 }

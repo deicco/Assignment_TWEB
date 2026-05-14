@@ -30,22 +30,28 @@ app.engine('hbs', engine({
     helpers: {
         /**
          * Helper to format the release year.
-         * @param {number} y - The year to format.
-         * @returns {number|string} The year or 'N/A' if invalid.
          */
         getYear: (y) => (y && y > 1850) ? y : 'N/A',
 
         /**
          * Helper to format the rating.
-         * @param {number} r - The rating score.
-         * @returns {number|string} The rating or 'N/A' if invalid.
          */
-        formatRating: (r) => (r && r > 0) ? r : 'N/A'
+        formatRating: (r) => (r && r > 0) ? r : 'N/A',
+
+        // --- NEW PAGINATION HELPERS ---
+
+        /** If a == b, ret true */
+        eq: (a, b) => a === b,
+
+        /** Math sum */
+        add: (a, b) => Number(a) + Number(b),
+
+        /** Math sub */
+        sub: (a, b) => Number(a) - Number(b)
     }
 }));
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
-
 /**
  * Global Middleware Configuration.
  */

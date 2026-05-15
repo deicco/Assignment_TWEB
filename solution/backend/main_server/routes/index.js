@@ -24,36 +24,48 @@ router.get('/', async (req, res) => {
 
 /**
  * GET movie details page.
- * Aggregates movie metadata, reviews, genres, and languages from different microservices.
- * * @param {Object} req - The Express request object, expecting 'id' in the query string.
- * @param {Object} res - The Express response object used to render the Handlebars view.
+ * Aggregates movie metadata, genres, and languages from Spring Boot.
+ * Retrieves reviews from MongoDB and performs server-side pagination (5 reviews per page).
+ *
+ * @param {Object} req - The Express request object containing the 'id' and optional 'revPage'.
+ * @param {Object} res - The Express response object for rendering the view.
  */
 router.get('/movie_detail', async (req, res) => {
     try {
         const movieId = req.query.id;
+        // Current review page index (default to 0)
+        const revPage = parseInt(req.query.revPage) || 0;
+        const revSize = 5;
 
         /**
-         * 1. Fetch core movie data from Spring Boot.
-         * Includes movie details, cast, and posters.
+         * 1. Fetch main movie data from Spring Boot service.
          */
         const movieRes = await axios.get(`http://localhost:8082/movies/${movieId}`);
         const data = movieRes.data;
 
         /**
-         * 2. Fetch reviews from the MongoDB/Node.js microservice.
-         * Uses the movie name for querying.
+         * 2. Fetch ALL reviews for the movie from the MongoDB service.
          */
-        let reviews = [];
+        let allReviews = [];
         try {
             const reviewRes = await axios.get(`http://localhost:3001/reviews/movie/${encodeURIComponent(data.movie.name)}`);
-            reviews = reviewRes.data;
+            allReviews = reviewRes.data;
         } catch (e) {
-            console.warn("[Gateway] No reviews found for: " + data.movie.name);
+            console.warn("[Gateway] Review service unreachable or no reviews found.");
         }
 
         /**
-         * 3. Fetch genres from Spring Boot.
-         * Maps the array of genre objects to a comma-separated string.
+         * 3. Calculate pagination metadata for reviews.
+         * Math.ceil ensures we have enough pages to contain all reviews.
+         */
+        const totalReviews = allReviews.length;
+        const totalRevPages = Math.ceil(totalReviews / revSize);
+
+        // Slice the array to get only the reviews for the requested page
+        const paginatedReviews = allReviews.slice(revPage * revSize, (revPage + 1) * revSize);
+
+        /**
+         * 4. Fetch movie genres from Spring Boot.
          */
         let displayGenres = "N/A";
         try {
@@ -62,19 +74,18 @@ router.get('/movie_detail', async (req, res) => {
                 displayGenres = genreRes.data.map(g => g.genre).join(', ');
             }
         } catch (e) {
-            console.warn("[Gateway] No genres found for: " + data.movie.name);
+            console.warn("[Gateway] Genres fetch failed.");
         }
 
         /**
-         * 4. Format languages from the main Spring Boot response.
-         * Maps the array of language objects to a comma-separated string.
+         * 5. Format display languages from the Java DTO response.
          */
         const displayLanguages = (data.languages && data.languages.length > 0)
             ? data.languages.map(l => l.language).join(', ')
             : "N/A";
 
         /**
-         * Render the view with the aggregated data.
+         * Render the movie_detail view with paginated reviews and metadata.
          */
         res.render('pages/movie_detail', {
             title: data.movie.name,
@@ -83,11 +94,17 @@ router.get('/movie_detail', async (req, res) => {
             posters: data.posters || [],
             displayLanguages: displayLanguages,
             displayGenres: displayGenres,
-            reviews: reviews
+            reviews: paginatedReviews,
+            // Pagination metadata for Handlebars helpers
+            revPagination: {
+                current: revPage,
+                total: totalRevPages,
+                totalItems: totalReviews
+            }
         });
     } catch (error) {
-        console.error("[Gateway Error]: Movie detail route failed.", error.message);
-        res.status(404).send("Film non trovato.");
+        console.error("[Gateway Error]: Detail route processing failed.", error.message);
+        res.status(404).send("Movie not found.");
     }
 });
 module.exports = router;

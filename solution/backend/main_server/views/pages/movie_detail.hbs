@@ -40,6 +40,35 @@
     {{else}}
         <p>Nessuna recensione disponibile per questo film.</p>
     {{/each}}
+
+    {{#if revPagination.total}}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center pagination-sm">
+                {{!-- Previous Button --}}
+                <li class="page-item {{#if (eq revPagination.current 0)}}disabled{{/if}}">
+                    <a class="page-link border-orange text-orange bg-dark"
+                       href="/movie_detail?id={{movie.id}}&revPage={{sub revPagination.current 1}}">
+                    Precedente
+                    </a>
+                </li>
+
+                {{!-- Page Indicator --}}
+                <li class="page-item disabled">
+                    <span class="page-link border-orange text-orange bg-dark">
+                        Pagina {{add revPagination.current 1}} di {{revPagination.total}}
+                    </span>
+                </li>
+
+                {{!-- Next Button --}}
+                <li class="page-item {{#if (eq (add revPagination.current 1) revPagination.total)}}disabled{{/if}}">
+                    <a class="page-link border-orange text-orange bg-dark"
+                       href="/movie_detail?id={{movie.id}}&revPage={{add revPagination.current 1}}">
+                    Successiva
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    {{/if}}
 </section>
 
 <section id="chat-section" class="mt-5 p-4 rounded bg-dark-card border border-orange">
@@ -74,7 +103,6 @@
         const input = document.getElementById('chat-input');
         if (input.value.trim()) {
             const payload = { roomName: room, message: input.value, userId: user };
-            // LOG 3: Verifica che il tasto "Invia" faccia partire il dato
             console.log("📤 [Socket] Invio payload:", payload);
             socket.emit('sendMessage', payload);
             input.value = '';

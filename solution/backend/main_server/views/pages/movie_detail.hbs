@@ -13,16 +13,18 @@
 </section>
 
 <section class="related-data mt-4">
-    <h3 class="text-orange">👥 Cast Principale</h3>
+    <h3>👥 Cast Principale</h3>
     <ul class="list-unstyled">
         {{#each cast}}
             <li><strong>{{this.name}}</strong> nel ruolo di <span>{{this.role}}</span></li>
-        {{else}}
-            <li>Informazioni sul cast non disponibili.</li>
         {{/each}}
     </ul>
 </section>
 
+<section class="related-data mt-4">
+    <h3 class="text-orange">🎭 Generi</h3>
+    <p>{{displayGenres}}</p>
+</section>
 <section class="related-data mt-4">
     <h3 class="text-orange">🌐 Lingue Disponibili</h3>
     <p>{{displayLanguages}}</p>
@@ -50,14 +52,19 @@
 </section>
 
 <script>
-    const socket = io();
+    const socket = io(window.location.origin, { transports: ['websocket', 'polling'] });
+
     const movieId = "{{movie.id}}";
     const room = `room_film_${movieId}`;
     const user = 'User_' + Math.floor(Math.random() * 1000);
 
-    socket.emit('joinRoom', room);
+    socket.on('connect', () => {
+        console.log("✅ [Socket] Connesso al server con ID:", socket.id);
+        socket.emit('joinRoom', room);
+    });
 
     socket.on('message', (data) => {
+        console.log("📩 [Socket] Messaggio ricevuto:", data);
         const box = document.getElementById('chat-box');
         box.innerHTML += `<div><strong class="text-orange">${data.user}:</strong> <span>${data.text}</span></div>`;
         box.scrollTop = box.scrollHeight;
@@ -66,7 +73,10 @@
     function sendChatMessage() {
         const input = document.getElementById('chat-input');
         if (input.value.trim()) {
-            socket.emit('chatMessage', { room, user, text: input.value });
+            const payload = { roomName: room, message: input.value, userId: user };
+            // LOG 3: Verifica che il tasto "Invia" faccia partire il dato
+            console.log("📤 [Socket] Invio payload:", payload);
+            socket.emit('sendMessage', payload);
             input.value = '';
         }
     }

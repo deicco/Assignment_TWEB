@@ -45,8 +45,9 @@ public class GenresController {
      * Get genres for a movie (Integer ID).
      */
     @GetMapping("/movie/{movieId}")
-    public List<Genres> getGenresByMovie(@PathVariable Integer movieId) {
-        return genresService.getGenresByMovieId(movieId);
+    public ResponseEntity<List<Genres>> getGenresByMovie(@PathVariable Integer movieId) {
+        List<Genres> genres = genresService.getGenresByMovieId(movieId);
+        return ResponseEntity.ok(genres);
     }
 
     /**

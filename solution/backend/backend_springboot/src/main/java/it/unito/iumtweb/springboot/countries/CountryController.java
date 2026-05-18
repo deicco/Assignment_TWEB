@@ -21,8 +21,11 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class CountryController {
 
+    private final CountryService countryService;
     @Autowired
-    private CountryService countryService;
+    public CountryController(CountryService countryService) {
+        this.countryService = countryService;
+    }
 
     /**
      * GET /countries
@@ -59,8 +62,9 @@ public class CountryController {
      * Note: movieId is Integer.
      */
     @GetMapping("/movies/{movieId}")
-    public List<String> getCountriesByMovieId(@PathVariable Integer movieId) {
-        return countryService.getCountriesByMovie(movieId);
+    public ResponseEntity<List<String>> getCountriesByMovieId(@PathVariable Integer movieId) {
+        List<String> countries = countryService.getCountriesByMovie(movieId);
+        return ResponseEntity.ok(countries);
     }
 
     /**

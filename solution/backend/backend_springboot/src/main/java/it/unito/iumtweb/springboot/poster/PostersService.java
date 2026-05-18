@@ -14,8 +14,12 @@ import java.util.Optional;
 @Service
 public class PostersService {
 
+    private final PosterRepository posterRepository;
+
     @Autowired
-    private PosterRepository posterRepository;
+    public PostersService(PosterRepository posterRepository) {
+        this.posterRepository = posterRepository;
+    }
 
     /**
      * Retrieves all posters with pagination.

@@ -17,8 +17,12 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class PosterController {
 
+    private final PostersService postersService;
+
     @Autowired
-    private PostersService postersService;
+    public PosterController(PostersService postersService) {
+        this.postersService = postersService;
+    }
 
     /**
      * GET /posters
@@ -26,14 +30,15 @@ public class PosterController {
      *
      * @param page Page number (default 0).
      * @param size Items per page (default 20).
-     * @return A {@link Page} of {@link Poster} objects.
+     * @return A {@link ResponseEntity} wrapping the Page of {@link Poster} objects.
      */
     @GetMapping
-    public Page<Poster> getAllPosters(
+    public ResponseEntity<Page<Poster>> getAllPosters(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return postersService.getAllPosters(pageable);
+        // Avvolto correttamente in ResponseEntity.ok() come vuole il prof
+        return ResponseEntity.ok(postersService.getAllPosters(pageable));
     }
 
     /**
@@ -59,7 +64,7 @@ public class PosterController {
      */
     @GetMapping("/movie/{movieId}")
     public ResponseEntity<List<Poster>> getPostersByMovie(@PathVariable Integer movieId) {
-        List<Poster> posters = postersService.getPostersByMovieId(movieId);
+        List<Poster> posters = postersService.getPosterByMovieId(movieId);
         return ResponseEntity.ok(posters);
     }
 
@@ -71,8 +76,8 @@ public class PosterController {
      * @return The newly created {@link Poster}.
      */
     @PostMapping
-    public Poster createPoster(@RequestBody PosterDTO posterDto) {
-        return postersService.createPoster(posterDto);
+    public ResponseEntity<Poster> createPoster(@RequestBody PosterDTO posterDto) {
+        return ResponseEntity.ok(postersService.createPoster(posterDto));
     }
 
     /**

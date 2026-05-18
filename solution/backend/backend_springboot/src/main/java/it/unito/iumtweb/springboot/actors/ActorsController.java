@@ -21,8 +21,12 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class ActorsController {
 
+    private final ActorsService actorsService;
+
     @Autowired
-    private ActorsService actorsService;
+    public ActorsController(ActorsService actorsService) {
+        this.actorsService = actorsService;
+    }
 
     /**
      * GET /actors

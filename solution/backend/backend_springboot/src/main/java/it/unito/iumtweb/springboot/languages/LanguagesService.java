@@ -14,9 +14,12 @@ import java.util.Optional;
 @Service
 public class LanguagesService {
 
-    @Autowired
-    private LanguagesRepository languagesRepository;
+    private final LanguagesRepository languagesRepository;
 
+    @Autowired
+    public LanguagesService(LanguagesRepository languagesRepository) {
+        this.languagesRepository = languagesRepository;
+    }
     /**
      * Retrieves all languages with pagination.
      */

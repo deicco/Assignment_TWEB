@@ -17,9 +17,12 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class LanguagesController {
 
-    @Autowired
-    private LanguagesService languagesService;
+    private final LanguagesService languagesService;
 
+    @Autowired
+    public LanguagesController(LanguagesService languagesService) {
+        this.languagesService = languagesService;
+    }
     /**
      * GET /languages
      * List all languages with filters.
@@ -43,8 +46,8 @@ public class LanguagesController {
      * Get languages for a movie (Integer ID).
      */
     @GetMapping("/movie/{movieId}")
-    public List<Languages> getLanguagesByMovieId(@PathVariable Integer movieId) {
-        return languagesService.getLanguagesByMovieId(movieId);
+    public ResponseEntity<List<Languages>> getLanguagesByMovieId(@PathVariable Integer movieId) {
+        return ResponseEntity.ok(languagesService.getLanguagesByMovieId(movieId));
     }
 
     /**

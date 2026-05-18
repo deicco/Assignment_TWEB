@@ -20,7 +20,6 @@ public class CountryService {
     public CountryService(CountryRepository countryRepository) {
         this.countryRepository = countryRepository;
     }
-
     /**
      * Retrieves all country entries with pagination.
      */

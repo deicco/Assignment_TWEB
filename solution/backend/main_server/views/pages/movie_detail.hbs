@@ -71,8 +71,8 @@
     {{/if}}
 </section>
 
-<section id="chat-section" class="mt-5 p-4 rounded bg-dark-card border border-orange">
-    <h2 class="text-orange">💬 Chat Live</h2>
+<section id="chat-container" data-movie-id="{{movie.id}}" class="chat-section mt-4 border-top border-secondary pt-3">
+    <h3 class="text-orange">💬 Discussione Live</h3>
     <div id="chat-box" style="height: 250px; overflow-y: scroll; background: #000; padding: 15px; border-radius: 8px;"></div>
     <div class="mt-3 d-flex gap-2">
         <input type="text" id="chat-input" class="form-control" placeholder="Scrivi un messaggio...">
@@ -80,32 +80,4 @@
     </div>
 </section>
 
-<script>
-    const socket = io(window.location.origin, { transports: ['websocket', 'polling'] });
-
-    const movieId = "{{movie.id}}";
-    const room = `room_film_${movieId}`;
-    const user = 'User_' + Math.floor(Math.random() * 1000);
-
-    socket.on('connect', () => {
-        console.log("✅ [Socket] Connesso al server con ID:", socket.id);
-        socket.emit('joinRoom', room);
-    });
-
-    socket.on('message', (data) => {
-        console.log("📩 [Socket] Messaggio ricevuto:", data);
-        const box = document.getElementById('chat-box');
-        box.innerHTML += `<div><strong class="text-orange">${data.user}:</strong> <span>${data.text}</span></div>`;
-        box.scrollTop = box.scrollHeight;
-    });
-
-    function sendChatMessage() {
-        const input = document.getElementById('chat-input');
-        if (input.value.trim()) {
-            const payload = { roomName: room, message: input.value, userId: user };
-            console.log("📤 [Socket] Invio payload:", payload);
-            socket.emit('sendMessage', payload);
-            input.value = '';
-        }
-    }
-</script>
+<script src="/javascripts/chat.js"></script>

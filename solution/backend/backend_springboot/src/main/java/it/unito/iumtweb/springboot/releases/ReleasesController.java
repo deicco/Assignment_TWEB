@@ -17,9 +17,12 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class ReleasesController {
 
-    @Autowired
-    private ReleasesService releasesService;
+    private final ReleasesService releasesService;
 
+    @Autowired
+    public ReleasesController(ReleasesService releasesService) {
+        this.releasesService = releasesService;
+    }
     /**
      * GET /releases
      * Retrieves releases with optional country filter.
@@ -43,10 +46,9 @@ public class ReleasesController {
      * Retrieves all releases for a specific movie.
      */
     @GetMapping("/movie/{movieId}")
-    public List<Releases> getReleasesByMovieId(@PathVariable Integer movieId) {
-        return releasesService.getReleasesByMovieId(movieId);
+    public ResponseEntity<List<Releases>> getReleasesByMovieId(@PathVariable Integer movieId) {
+        return ResponseEntity.ok(releasesService.getReleasesByMovieId(movieId));
     }
-
     /**
      * GET /releases/{id}
      * Retrieves a specific release by unique ID.
@@ -63,8 +65,8 @@ public class ReleasesController {
      * Creates a new release.
      */
     @PostMapping
-    public Releases createRelease(@RequestBody ReleasesDTO releaseDto) {
-        return releasesService.createRelease(releaseDto);
+    public ResponseEntity<Releases> createRelease(@RequestBody ReleasesDTO releaseDto) {
+        return ResponseEntity.ok(releasesService.createRelease(releaseDto));
     }
 
     /**

@@ -14,9 +14,12 @@ import java.util.Optional;
 @Service
 public class ReleasesService {
 
-    @Autowired
-    private ReleasesRepository releasesRepository;
+    private final ReleasesRepository releasesRepository;
 
+    @Autowired
+    public ReleasesService(ReleasesRepository releasesRepository) {
+        this.releasesRepository = releasesRepository;
+    }
     /**
      * Retrieves all releases with pagination.
      */

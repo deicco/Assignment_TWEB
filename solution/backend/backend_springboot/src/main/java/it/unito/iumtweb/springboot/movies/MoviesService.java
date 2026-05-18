@@ -23,10 +23,21 @@ import java.util.Optional;
 @Service
 public class MoviesService {
 
-    @Autowired private MoviesRepository repo;
-    @Autowired private PosterRepository posterRepo;
-    @Autowired private ActorsRepository actorsRepo;
-    @Autowired private LanguagesRepository languageRepo;
+    private final MoviesRepository repo;
+    private final PosterRepository posterRepo;
+    private final ActorsRepository actorsRepo;
+    private final LanguagesRepository languageRepo;
+
+    @Autowired
+    public MoviesService(MoviesRepository repo,
+                         PosterRepository posterRepo,
+                         ActorsRepository actorsRepo,
+                         LanguagesRepository languageRepo) {
+        this.repo = repo;
+        this.posterRepo = posterRepo;
+        this.actorsRepo = actorsRepo;
+        this.languageRepo = languageRepo;
+    }
 
     /**
      * Retrieves a paginated list of movies based on optional filters.

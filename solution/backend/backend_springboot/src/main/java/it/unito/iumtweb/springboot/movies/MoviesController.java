@@ -22,12 +22,14 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:3000")
 public class MoviesController {
 
-    @Autowired
-    private MoviesService service;
+    private final MoviesService service;
+    private final PosterRepository posterRepo;
 
     @Autowired
-    private PosterRepository posterRepo;
-
+    public MoviesController(MoviesService service, PosterRepository posterRepo) {
+        this.service = service;
+        this.posterRepo = posterRepo;
+    }
     /**
      * GET /movies
      * Retrieves a paginated list of movies. Each element is a Map containing
@@ -44,7 +46,7 @@ public class MoviesController {
      * @return A page of maps with "movie" and "posterLink".
      */
     @GetMapping
-    public Page<Map<String, Object>> listMovies(
+    public ResponseEntity<Page<Map<String, Object>>> listMovies(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Float minRating,
             @RequestParam(required = false) Float maxRating,
@@ -57,8 +59,10 @@ public class MoviesController {
         Pageable pageable = PageRequest.of(page, size);
         Page<Movies> moviesPage = service.getMovies(name, minRating, maxRating, startYear, endYear, minMinute, pageable);
 
-        return moviesPage.map(movie -> {
-            // Fetch the poster link using movie ID
+        Page<Map<String, Object>> mappedPage = moviesPage.map(movie -> {
+
+            /* Poster Link from movie id*/
+
             String link = posterRepo.findByMovieId(movie.getId().intValue())
                     .stream()
                     .findFirst()
@@ -70,6 +74,8 @@ public class MoviesController {
                     "posterLink", link
             );
         });
+
+        return ResponseEntity.ok(mappedPage);
     }
 
     /**

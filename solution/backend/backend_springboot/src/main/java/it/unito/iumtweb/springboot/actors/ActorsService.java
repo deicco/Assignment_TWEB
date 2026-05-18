@@ -16,9 +16,12 @@ import java.util.Optional;
 @Service
 public class ActorsService {
 
-    @Autowired
-    private ActorsRepository actorsRepository;
+    private final ActorsRepository actorsRepository;
 
+    @Autowired
+    public ActorsService(ActorsRepository actorsRepository) {
+        this.actorsRepository = actorsRepository;
+    }
     /**
      * Retrieves all actors (paginated).
      */

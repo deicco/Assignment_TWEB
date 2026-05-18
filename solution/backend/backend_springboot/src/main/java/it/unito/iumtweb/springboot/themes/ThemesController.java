@@ -17,8 +17,12 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class ThemesController {
 
+    private final ThemesService themesService;
+
     @Autowired
-    private ThemesService themesService;
+    public ThemesController(ThemesService themesService) {
+        this.themesService = themesService;
+    }
 
     /**
      * GET /themes
@@ -43,8 +47,8 @@ public class ThemesController {
      * Retrieves all themes for a specific movie.
      */
     @GetMapping("/movie/{movieId}")
-    public List<Themes> getThemesByMovieId(@PathVariable Integer movieId) {
-        return themesService.getThemesByMovieId(movieId);
+    public ResponseEntity<List<Themes>> getThemesByMovieId(@PathVariable Integer movieId) {
+        return ResponseEntity.ok(themesService.getThemesByMovieId(movieId));
     }
 
     /**
@@ -63,10 +67,9 @@ public class ThemesController {
      * Creates a new theme.
      */
     @PostMapping
-    public Themes createTheme(@RequestBody ThemesDTO themeDto) {
-        return themesService.createTheme(themeDto);
+    public ResponseEntity<Themes> createTheme(@RequestBody ThemesDTO themeDto) {
+        return ResponseEntity.ok(themesService.createTheme(themeDto));
     }
-
     /**
      * PUT /themes/{id}
      * Updates an existing theme by unique ID.

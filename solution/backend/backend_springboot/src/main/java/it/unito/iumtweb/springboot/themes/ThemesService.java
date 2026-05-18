@@ -14,9 +14,12 @@ import java.util.Optional;
 @Service
 public class ThemesService {
 
-    @Autowired
-    private ThemesRepository themesRepository;
+    private final ThemesRepository themesRepository;
 
+    @Autowired
+    public ThemesService(ThemesRepository themesRepository) {
+        this.themesRepository = themesRepository;
+    }
     /**
      * Retrieves all themes with pagination.
      */

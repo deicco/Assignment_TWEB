@@ -14,9 +14,12 @@ import java.util.Optional;
 @Service
 public class OscarsService {
 
-    @Autowired
-    private OscarsRepository oscarsRepository;
+    private final OscarsRepository oscarsRepository;
 
+    @Autowired
+    public OscarsService(OscarsRepository oscarsRepository) {
+        this.oscarsRepository = oscarsRepository;
+    }
     /**
      * Retrieves all oscar entries with pagination.
      */

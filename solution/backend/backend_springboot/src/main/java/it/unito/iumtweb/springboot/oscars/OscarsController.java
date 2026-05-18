@@ -17,8 +17,12 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class OscarsController {
 
+    private final OscarsService oscarsService;
+
     @Autowired
-    private OscarsService oscarsService;
+    public OscarsController(OscarsService oscarsService) {
+        this.oscarsService = oscarsService;
+    }
 
     /**
      * GET /oscars
@@ -40,9 +44,10 @@ public class OscarsController {
      * GET /oscars/movie/{movieId}
      * Retrieves awards for a specific movie.
      */
+
     @GetMapping("/movie/{movieId}")
-    public List<Oscars> getOscarsByMovieId(@PathVariable Integer movieId) {
-        return oscarsService.getOscarsByMovieId(movieId);
+    public ResponseEntity<List<Oscars>> getOscarsByMovieId(@PathVariable Integer movieId) {
+        return ResponseEntity.ok(oscarsService.getOscarsByMovieId(movieId));
     }
 
     /**

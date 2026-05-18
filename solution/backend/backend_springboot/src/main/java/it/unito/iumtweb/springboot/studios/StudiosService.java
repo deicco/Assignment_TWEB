@@ -14,9 +14,12 @@ import java.util.Optional;
 @Service
 public class StudiosService {
 
-    @Autowired
-    private StudiosRepository studiosRepository;
+    private final StudiosRepository studiosRepository;
 
+    @Autowired
+    public StudiosService(StudiosRepository studiosRepository) {
+        this.studiosRepository = studiosRepository;
+    }
     /**
      * Retrieves all studio entries with pagination.
      */

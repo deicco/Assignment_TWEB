@@ -17,9 +17,12 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class StudiosController {
 
-    @Autowired
-    private StudiosService studiosService;
+    private final StudiosService studiosService;
 
+    @Autowired
+    public StudiosController(StudiosService studiosService) {
+        this.studiosService = studiosService;
+    }
     /**
      * GET /studios
      * Retrieves all studios with pagination and optional search.
@@ -43,8 +46,8 @@ public class StudiosController {
      * Retrieves all studios for a specific movie.
      */
     @GetMapping("/movie/{movieId}")
-    public List<Studios> getStudiosByMovieId(@PathVariable Integer movieId) {
-        return studiosService.getStudiosByMovieId(movieId);
+    public ResponseEntity<List<Studios>> getStudiosByMovieId(@PathVariable Integer movieId) {
+        return ResponseEntity.ok(studiosService.getStudiosByMovieId(movieId));
     }
 
     /**
@@ -63,10 +66,9 @@ public class StudiosController {
      * Creates a new association.
      */
     @PostMapping
-    public Studios createStudio(@RequestBody StudiosDTO studioDto) {
-        return studiosService.createStudio(studioDto);
+    public ResponseEntity<Studios> createStudio(@RequestBody StudiosDTO studioDto) {
+        return ResponseEntity.ok(studiosService.createStudio(studioDto));
     }
-
     /**
      * PUT /studios/{id}
      * Updates an existing entry by unique ID.

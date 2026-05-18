@@ -17,8 +17,12 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class CrewController {
 
+    private final CrewService crewService;
+
     @Autowired
-    private CrewService crewService;
+    public CrewController(CrewService crewService) {
+        this.crewService = crewService;
+    }
 
     /**
      * GET /crew
@@ -40,10 +44,10 @@ public class CrewController {
      * Get crew for a movie.
      */
     @GetMapping("/movie/{movieId}")
-    public List<Crew> getCrewByMovieId(@PathVariable Integer movieId) {
-        return crewService.getCrewByMovieId(movieId);
+    public ResponseEntity<List<Crew>> getCrewByMovieId(@PathVariable Integer movieId) {
+        List<Crew> crew = crewService.getCrewByMovieId(movieId);
+        return ResponseEntity.ok(crew);
     }
-
     /**
      * GET /crew/{id}
      * Get by unique ID.

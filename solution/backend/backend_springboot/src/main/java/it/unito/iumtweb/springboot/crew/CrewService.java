@@ -14,8 +14,12 @@ import java.util.Optional;
 @Service
 public class CrewService {
 
+    private final CrewRepository crewRepository;
+
     @Autowired
-    private CrewRepository crewRepository;
+    public CrewService(CrewRepository crewRepository) {
+        this.crewRepository = crewRepository;
+    }
 
     /**
      * Retrieves all crew entries with pagination.

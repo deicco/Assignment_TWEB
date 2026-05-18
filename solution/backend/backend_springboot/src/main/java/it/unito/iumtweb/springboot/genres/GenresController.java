@@ -16,9 +16,12 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class GenresController {
 
-    @Autowired
-    private GenresService genresService;
+    private final GenresService genresService;
 
+    @Autowired
+    public GenresController(GenresService genresService) {
+        this.genresService = genresService;
+    }
     /**
      * GET /genres
      * List all genres with filters.

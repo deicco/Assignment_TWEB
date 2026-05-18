@@ -14,9 +14,12 @@ import java.util.Optional;
 @Service
 public class GenresService {
 
-    @Autowired
-    private GenresRepository genresRepository;
+    private final GenresRepository genresRepository;
 
+    @Autowired
+    public GenresService(GenresRepository genresRepository) {
+        this.genresRepository = genresRepository;
+    }
     /**
      * Retrieves all genre entries with pagination.
      */

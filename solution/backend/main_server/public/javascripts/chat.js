@@ -1,44 +1,113 @@
-// public/javascripts/chat.js
+/**
+ * @file chat.js
+ * @description Client-side script managing real-time chat communication via Socket.io.
+ * It handles automatic room assignment based on the active movie identifier and
+ * dynamically updates the chat interface without requiring page reloads.
+ * @version 1.1.0
+ */
 
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Recupero l'ID del film dall'HTML (che Handlebars ha inserito)
+    /**
+     * The HTML element wrapper containing the chat components and metadata.
+     * @type {HTMLElement|null}
+     */
     const chatContainer = document.getElementById('chat-container');
-    const movieId = chatContainer.getAttribute('data-movie-id');
+
+    /**
+     * The unique identifier of the current movie, extracted from the container's custom data attribute.
+     * @type {string|null}
+     */
+    const movieId = chatContainer ? chatContainer.getAttribute('data-movie-id') : null;
 
     if (!movieId) {
-        console.error("Errore: Movie ID non trovato per la chat.");
+        console.error("[Chat Error] Movie ID not found. Chat initialization aborted.");
         return;
     }
 
-    // 2. Inizializzo Socket.io
+    /**
+     * Socket.io client instance established with the server origin, configured with standard protocols.
+     * @type {Object}
+     */
     const socket = io(window.location.origin, { transports: ['websocket', 'polling'] });
+
+    /**
+     * The dedicated message room name unique to the current movie entity.
+     * @type {string}
+     */
     const room = `room_film_${movieId}`;
+
+    /**
+     * A temporary, randomly generated username to represent the anonymous session member.
+     * @type {string}
+     */
     const user = 'User_' + Math.floor(Math.random() * 1000);
 
+    /**
+     * Handles the 'connect' event from Socket.io.
+     * Dispatches a request to the server to join the isolated chat room for this movie.
+     */
     socket.on('connect', () => {
-        console.log("✅ [Socket] Connesso al server con ID:", socket.id);
+        console.log(`✅ [Socket] Successfully connected to server with ID: ${socket.id}`);
         socket.emit('joinRoom', room);
     });
 
+    /**
+     * Handles the 'message' event broadcasted from the server room.
+     * Appends the chat payload content into the view's conversation container and adjusts the scrollbar.
+     * @param {Object} data - The message payload transmitted by the server.
+     * @param {string} data.user - The identification string of the message author.
+     * @param {string} data.text - The descriptive text content of the message.
+     */
     socket.on('message', (data) => {
-        console.log("📩 [Socket] Messaggio ricevuto:", data);
+        console.log("📩 [Socket] New message received:", data);
         const box = document.getElementById('chat-box');
-        box.innerHTML += `<div><strong class="text-orange">${data.user}:</strong> <span>${data.text}</span></div>`;
-        box.scrollTop = box.scrollHeight;
+        if (box) {
+            box.innerHTML += `<div class="mb-2"><strong class="text-orange">${data.user}:</strong> <span class="text-light">${data.text}</span></div>`;
+            box.scrollTop = box.scrollHeight; // Automatic scroll to the bottom
+        }
     });
 
-    // 3. Rendo la funzione globale per poterla chiamare dal bottone HTML
-    window.sendChatMessage = function() {
-        const input = document.getElementById('chat-input');
-        const message = input.value.trim();
+    /**
+     * DOM references to layout controls for message transmission.
+     */
+    const sendButton = document.getElementById('chat-submit-btn');
+    const input = document.getElementById('chat-input');
 
-        if (message) {
-            socket.emit('sendMessage', {
-                roomName: room,
-                message: message,
-                userId: user
-            });
-            input.value = '';
+    if (sendButton && input) {
+        /**
+         * Triggers message sending when the visual submission button is clicked.
+         */
+        sendButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            sendMessage();
+        });
+
+        /**
+         * Triggers message sending when the 'Enter' key is pressed inside the input field.
+         */
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        /**
+         * Extracts text from the client input element and transmits the payload to the server-side room.
+         * Clears the input field upon successful transmission.
+         * @function sendMessage
+         * @returns {void}
+         */
+        function sendMessage() {
+            const message = input.value.trim();
+            if (message) {
+                socket.emit('sendMessage', {
+                    message: message,
+                    userId: user,
+                    roomName: room // Kept for server-side routing compatibility
+                });
+                input.value = '';
+            }
         }
-    };
+    }
 });

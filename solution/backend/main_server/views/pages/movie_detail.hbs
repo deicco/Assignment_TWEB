@@ -17,6 +17,8 @@
     <ul class="list-unstyled">
         {{#each cast}}
             <li><strong>{{this.name}}</strong> nel ruolo di <span>{{this.role}}</span></li>
+        {{else}}
+            <li>Informazioni sul cast non disponibili.</li>
         {{/each}}
     </ul>
 </section>
@@ -25,50 +27,68 @@
     <h3 class="text-orange">🎭 Generi</h3>
     <p>{{displayGenres}}</p>
 </section>
+
 <section class="related-data mt-4">
-    <h3 class="text-orange">🌐 Lingue Disponibili</h3>
+    <h3 class="text-orange">🌐 Lingue</h3>
     <p>{{displayLanguages}}</p>
 </section>
 
 <section class="related-data mt-4">
-    <h3 class="text-orange">⭐️ Recensioni (da MongoDB)</h3>
-    {{#each reviews}}
-        <div class="card bg-dark border-secondary mb-3 p-3">
-            <p class="mb-1 text-orange"><strong>{{this.critic_name}}</strong> - Voto: {{this.review_score}}</p>
-            <p class="mb-0 small">"{{this.review_content}}"</p>
-        </div>
-    {{else}}
-        <p>Nessuna recensione disponibile per questo film.</p>
-    {{/each}}
+    <h3 class="text-orange">✍️ Recensioni</h3>
 
-    {{#if revPagination.total}}
-        <nav class="mt-4">
-            <ul class="pagination justify-content-center pagination-sm">
-                {{!-- Previous Button --}}
-                <li class="page-item {{#if (eq revPagination.current 0)}}disabled{{/if}}">
-                    <a class="page-link border-orange text-orange bg-dark"
-                       href="/movie_detail?id={{movie.id}}&revPage={{sub revPagination.current 1}}">
-                    Precedente
-                    </a>
-                </li>
+    <div id="reviews-wrapper" data-movie-name="{{movie.name}}">
+        <ul class="list-unstyled" id="reviews-list">
+            {{#each reviews}}
+                <li class="p-3 rounded mb-3
+                    {{#if (eq this.review_type 'Fresh')}}alert alert-success{{/if}}
+                    {{#if (eq this.review_type 'Rotten')}}alert alert-danger{{/if}}
+                    {{#unless this.review_type}}bg-dark border border-secondary text-light{{/unless}}">
 
-                {{!-- Page Indicator --}}
-                <li class="page-item disabled">
-                    <span class="page-link border-orange text-orange bg-dark">
-                        Pagina {{add revPagination.current 1}} di {{revPagination.total}}
-                    </span>
-                </li>
+                    <strong>{{this.critic_name}}</strong>
+                    {{#if this.review_type}}
+                        - <span class="badge {{#if (eq this.review_type 'Fresh')}}bg-success{{else}}bg-danger{{/if}}">{{this.review_type}}</span>
+                    {{/if}}
 
-                {{!-- Next Button --}}
-                <li class="page-item {{#if (eq (add revPagination.current 1) revPagination.total)}}disabled{{/if}}">
-                    <a class="page-link border-orange text-orange bg-dark"
-                       href="/movie_detail?id={{movie.id}}&revPage={{add revPagination.current 1}}">
-                    Successiva
-                    </a>
+                    <p class="mt-2 mb-1">{{this.review_content}}</p>
+
+                    {{#if this.review_score}}
+                        <p class="mb-0"><small class="text-orange">Voto: {{this.review_score}}</small></p>
+                    {{/if}}
                 </li>
-            </ul>
-        </nav>
-    {{/if}}
+            {{else}}
+                <li>Nessuna recensione disponibile per questo film.</li>
+            {{/each}}
+        </ul>
+
+        {{!-- Pagination Component controlled via Client-Side Ajax --}}
+        {{#if revPagination.showPagination}}
+            <nav aria-label="Review page navigation" class="mt-4" id="reviews-pagination">
+                <ul class="pagination justify-content-center">
+
+                    {{!-- Previous Button --}}
+                    <li class="page-item {{#unless revPagination.hasPrevPage}}disabled{{/unless}}" id="prev-page-item">
+                        <a class="page-link border-orange text-orange bg-dark" href="#" id="prev-rev-btn" data-page="-1">
+                            Precedente
+                        </a>
+                    </li>
+
+                    {{!-- Page Indicator --}}
+                    <li class="page-item disabled">
+                        <span class="page-link border-orange text-orange bg-dark" id="page-indicator">
+                            Pagina {{add revPagination.current 1}} di {{revPagination.total}}
+                        </span>
+                    </li>
+
+                    {{!-- Next Button --}}
+                    <li class="page-item {{#unless revPagination.hasNextPage}}disabled{{/unless}}" id="next-page-item">
+                        <a class="page-link border-orange text-orange bg-dark" href="#" id="next-rev-btn" data-page="1">
+                            Successiva
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        {{/if}}
+    </div>
 </section>
 
 <section id="chat-container" data-movie-id="{{movie.id}}" class="chat-section mt-4 border-top border-secondary pt-3">
@@ -76,8 +96,9 @@
     <div id="chat-box" style="height: 250px; overflow-y: scroll; background: #000; padding: 15px; border-radius: 8px;"></div>
     <div class="mt-3 d-flex gap-2">
         <input type="text" id="chat-input" class="form-control" placeholder="Scrivi un messaggio...">
-        <button class="btn btn-orange" onclick="sendChatMessage()">Invia</button>
+        <button class="btn btn-primary" id="chat-submit-btn">Invia</button>
     </div>
 </section>
 
+<script src="/javascripts/reviews.js"></script>
 <script src="/javascripts/chat.js"></script>

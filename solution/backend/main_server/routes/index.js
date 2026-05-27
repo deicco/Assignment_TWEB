@@ -6,25 +6,23 @@ const axios = require('axios');
  * @swagger
  * /:
  * get:
- * summary: Retrieve the home page with a paginated list of movies
- * tags: [Movies]
- * description: Fetches paginated movie data from the Spring Boot server and allows optional filtering by movie name.
+ * summary: Home page movies
+ * tags:
+ * - Movies
  * parameters:
  * - in: query
  * name: page
  * schema:
  * type: integer
- * description: The index of the page to retrieve (defaults to 0)
  * - in: query
  * name: name
  * schema:
  * type: string
- * description: Optional filter to search for movies by name
  * responses:
  * 200:
- * description: Successfully rendered the index view with movie data
+ * description: Success
  * 500:
- * description: Internal gateway error while fetching movies
+ * description: Error
  */
 router.get('/', async (req, res) => {
     try {
@@ -50,26 +48,25 @@ router.get('/', async (req, res) => {
  * @swagger
  * /movie_detail:
  * get:
- * summary: Retrieve movie details and initial reviews
- * tags: [Movies, Reviews]
- * description: Aggregates core movie data and genres from Spring Boot and initial reviews from MongoDB.
+ * summary: Movie details
+ * tags:
+ * - Movies
  * parameters:
  * - in: query
  * name: id
  * required: true
  * schema:
  * type: integer
- * description: The unique identifier of the movie
  * responses:
  * 200:
- * description: Successfully rendered the movie detail view
+ * description: Success
  * 404:
- * description: Movie not found or gateway aggregation error
+ * description: Not found
  */
 router.get('/movie_detail', async (req, res) => {
     try {
         const movieId = req.query.id;
-        const revPage = 0; // Default to first page initially
+        const revPage = 0;
         const revSize = 10;
 
         const movieRes = await axios.get(`http://localhost:8082/movies/${movieId}`);
@@ -136,26 +133,24 @@ router.get('/movie_detail', async (req, res) => {
  * @swagger
  * /api/reviews:
  * get:
- * summary: Get paginated reviews for a specific movie as JSON
- * tags: [Reviews]
- * description: Asynchronously fetches a page of reviews from the MongoDB service to allow non-blocking client-side updates via Axios.
+ * summary: Paginated reviews
+ * tags:
+ * - Reviews
  * parameters:
  * - in: query
  * name: movieName
  * required: true
  * schema:
  * type: string
- * description: The name of the movie
  * - in: query
  * name: page
  * schema:
  * type: integer
- * description: The review page index to retrieve
  * responses:
  * 200:
- * description: A JSON payload containing the text reviews array and pagination metadata
+ * description: Success
  * 500:
- * description: Failed to communicate with MongoDB microservice
+ * description: Error
  */
 router.get('/api/reviews', async (req, res) => {
     try {

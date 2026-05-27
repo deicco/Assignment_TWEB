@@ -61,9 +61,31 @@ document.addEventListener("DOMContentLoaded", () => {
     socket.on('message', (data) => {
         console.log("📩 [Socket] New message received:", data);
         const box = document.getElementById('chat-box');
+
         if (box) {
-            box.innerHTML += `<div class="mb-2"><strong class="text-orange">${data.user}:</strong> <span class="text-light">${data.text}</span></div>`;
-            box.scrollTop = box.scrollHeight; // Automatic scroll to the bottom
+            // 1. Create the main wrapper div for the message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = "mb-2";
+
+            // 2. Create the strong tag for the author's username
+            const authorStrong = document.createElement('strong');
+            authorStrong.className = "text-orange";
+            authorStrong.textContent = `${data.user}: `;
+
+            // 3. Create the span tag for the message text (textContent prevents XSS)
+            const textSpan = document.createElement('span');
+            textSpan.className = "text-light";
+            textSpan.textContent = data.text;
+
+            // 4. Assemble the elements by appending them to the main div
+            messageDiv.appendChild(authorStrong);
+            messageDiv.appendChild(textSpan);
+
+            // 5. Append the fully constructed message div to the chat box
+            box.appendChild(messageDiv);
+
+            // Automatically scroll to the bottom of the chat
+            box.scrollTop = box.scrollHeight;
         }
     });
 
